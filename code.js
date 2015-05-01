@@ -50,7 +50,7 @@ var cy = cytoscape({
       { data: { id: 'f', parent: 'e' } }
     ],
     edges: [
-      { data: { id: 'ad', source: 'a', target: 'd' } },
+      { data: { id: 'bd', source: 'b', target: 'd' } },
       { data: { id: 'eb', source: 'e', target: 'b' } }
       
     ]
