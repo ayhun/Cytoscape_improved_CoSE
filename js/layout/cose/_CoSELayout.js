@@ -115,7 +115,8 @@
       if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
         var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
     }
-
+    
+    nodes = this.options.cy.nodes();
     for(var i = 0; i < nodes.length; i++){
       var node = nodes[i];
       var lnode = idToLNode[node.id()]
@@ -676,7 +677,7 @@
     for (var i = 0; i < size; i++) {
       var theChild = children[i];
       this.cy.nodes().length;
-      var children_of_children = allChildren[theChild.data("id")];
+      var children_of_children = theChild.children();
       var theNode;
 
       if (theChild.width() != null
