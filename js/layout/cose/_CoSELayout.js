@@ -116,10 +116,10 @@
         var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
     }
 
-    for(var i in nodes){
+    for(var i = 0; i < nodes.length; i++){
       var node = nodes[i];
-      var lnode = idToLNode[node.data("id")]
-      console.log(node.data("id") + "\t" + lnode.rect.x + "\t" + lnode.rect.y);
+      var lnode = idToLNode[node.id()]
+      console.log(node.id() + "\t" + lnode.rect.x + "\t" + lnode.rect.y);
     }
 
     layout.runLayout();
