@@ -125,7 +125,7 @@ describe('Thread', function () {
     var t = $$.Thread();
 
     function foo() {
-      
+
       return 'bar';
     }
 
@@ -133,7 +133,65 @@ describe('Thread', function () {
 
     t.run(function () {
 
-      
+      var cy = cytoscape({
+        container: document.getElementById('cy'),
+        style: [
+          {
+            selector: 'node',
+            css: {
+              'content': 'data(id)',
+              'text-valign': 'center',
+              'text-halign': 'center'
+            }
+          },
+          {
+            selector: '$node > node',
+            css: {
+              'padding-top': '10px',
+              'padding-left': '10px',
+              'padding-bottom': '10px',
+              'padding-right': '10px',
+              'text-valign': 'top',
+              'text-halign': 'center'
+            }
+          },
+          {
+            selector: 'edge',
+            css: {
+              'target-arrow-shape': 'triangle'
+            }
+          },
+          {
+            selector: ':selected',
+            css: {
+              'background-color': 'black',
+              'line-color': 'black',
+              'target-arrow-color': 'black',
+              'source-arrow-color': 'black'
+            }
+          }
+        ],
+        elements: {
+          nodes: [
+            {data: {id: 'a', parent: 'b'}},
+            {data: {id: 'b'}},
+            {data: {id: 'c', parent: 'b'}},
+            {data: {id: 'd'}},
+            {data: {id: 'e'}},
+            {data: {id: 'f', parent: 'e'}}
+          ],
+          edges: [
+            {data: {id: 'ad', source: 'b', target: 'd'}},
+            {data: {id: 'eb', source: 'e', target: 'b'}}
+
+          ]
+        },
+        layout: {
+          name: 'cose2',
+          padding: 5
+        }
+      });
+
       message(foo());
     });
 
@@ -215,35 +273,35 @@ describe('Thread', function () {
     });
   });
   /*
-  it('requires an external file', function (next) {
-    var t = $$.Thread();
-
-    t.require('./requires/foo.js');
-
-    t.run(function () {
-      resolve(foo());
-    }).then(function (ret) {
-      expect(ret).to.equal('bar');
-
-      t.stop();
-      next();
-    });
-  });
-
-  it('requires an external file with ../', function (next) {
-    var t = $$.Thread();
-
-    t.require('../test/requires/foo.js');
-
-    t.run(function () {
-      resolve(foo());
-    }).then(function (ret) {
-      expect(ret).to.equal('bar');
-
-      t.stop();
-      next();
-    });
-  });*/
+   it('requires an external file', function (next) {
+   var t = $$.Thread();
+   
+   t.require('./requires/foo.js');
+   
+   t.run(function () {
+   resolve(foo());
+   }).then(function (ret) {
+   expect(ret).to.equal('bar');
+   
+   t.stop();
+   next();
+   });
+   });
+   
+   it('requires an external file with ../', function (next) {
+   var t = $$.Thread();
+   
+   t.require('../test/requires/foo.js');
+   
+   t.run(function () {
+   resolve(foo());
+   }).then(function (ret) {
+   expect(ret).to.equal('bar');
+   
+   t.stop();
+   next();
+   });
+   });*/
 
   it('calls multiple runs in order', function (next) {
     var t = $$.Thread();
