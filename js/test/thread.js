@@ -8,11 +8,9 @@ describe('Thread', function () {
   if (isNode) {
     console.log('isNode')
     var cwd = process.cwd();
-
     before(function () {
       process.chdir('./test');
     });
-
     after(function () {
       process.chdir(cwd);
     });
@@ -20,65 +18,49 @@ describe('Thread', function () {
 
   it('resolves with a simple value', function (next) {
     var t = $$.Thread();
-
     t.run(function () {
       resolve(3);
     }).then(function (val) {
       expect(val).to.equal(3);
-
       t.stop();
-
       next();
     });
   });
-
   it('resolves with a simple value via return', function (next) {
     var t = $$.Thread();
-
     t.run(function () {
       return 3;
     }).then(function (val) {
       expect(val).to.equal(3);
-
       t.stop();
-
       next();
     });
   });
-
   it('rejects with a simple value', function (next) {
     var t = $$.Thread();
-
     t.run(function () {
       reject(3);
     }).then(function (val) {
       console.error('Thread resolved but should have rejected');
     }, function (err) {
       expect(err).to.equal(3);
-
       t.stop();
       next();
     });
   });
-
   it('reports as stopped when stopped', function (next) {
     var t = $$.Thread();
-
     t.run(function () {
       resolve(3);
     }).then(function (val) {
       t.stop();
-
       expect(t.stopped()).to.be.true;
-
       next();
     });
   });
-
   it('works with 2 threads at once', function (next) {
     var t1 = $$.Thread();
     var t2 = $$.Thread();
-
     $$.Promise.all([// both threads done
       t1.run(function () {
         resolve(1);
@@ -89,124 +71,110 @@ describe('Thread', function () {
     ]).then(function (thens) {
       var v1 = thens[0];
       var v2 = thens[1];
-
       expect(v1).to.equal(1);
       expect(v2).to.equal(2);
-
       t1.stop();
       t2.stop();
-
       next();
     });
   });
-
   it('hears a message and roundtrips back', function (next) {
     var t = $$.Thread();
     var msg;
-
     t.run(function () {
       listen(function (m) {
         message(m);
       });
     });
-
     t.on('message', function (e) {
       expect(e.message).to.equal('hello there');
-
       t.stop();
-
       next();
     });
-
     t.message('hello there');
   });
-
   it('requires a named function', function (next) {
     var t = $$.Thread();
+    var cy = $$({
+      container: document.getElementById('cy'),
+      style: [
+        {
+          selector: 'node',
+          css: {
+            'content': 'data(id)',
+            'text-valign': 'center',
+            'text-halign': 'center'
+          }
+        },
+        {
+          selector: '$node > node',
+          css: {
+            'padding-top': '10px',
+            'padding-left': '10px',
+            'padding-bottom': '10px',
+            'padding-right': '10px',
+            'text-valign': 'top',
+            'text-halign': 'center'
+          }
+        },
+        {
+          selector: 'edge',
+          css: {
+            'target-arrow-shape': 'triangle'
+          }
+        },
+        {
+          selector: ':selected',
+          css: {
+            'background-color': 'black',
+            'line-color': 'black',
+            'target-arrow-color': 'black',
+            'source-arrow-color': 'black'
+          }
+        }
+      ],
+      elements: {
+        nodes: [
+          {data: {id: 'a', parent: 'b'}},
+          {data: {id: 'b'}},
+          {data: {id: 'c', parent: 'b'}},
+          {data: {id: 'd'}},
+          {data: {id: 'e'}},
+          {data: {id: 'f', parent: 'e'}}
+        ],
+        edges: [
+          {data: {id: 'ad', source: 'b', target: 'd'}},
+          {data: {id: 'eb', source: 'e', target: 'b'}}
 
+        ]
+      },
+      layout: {
+        name: 'cose2',
+        padding: 5
+      }
+    });
     function foo() {
+      var options = {
+        name: 'cose2',
+        padding: 5
+      }
 
+      cy.layout(options);
       return 'bar';
     }
 
     t.require(foo);
-
     t.run(function () {
-
-      var cy = cytoscape({
-        container: document.getElementById('cy'),
-        style: [
-          {
-            selector: 'node',
-            css: {
-              'content': 'data(id)',
-              'text-valign': 'center',
-              'text-halign': 'center'
-            }
-          },
-          {
-            selector: '$node > node',
-            css: {
-              'padding-top': '10px',
-              'padding-left': '10px',
-              'padding-bottom': '10px',
-              'padding-right': '10px',
-              'text-valign': 'top',
-              'text-halign': 'center'
-            }
-          },
-          {
-            selector: 'edge',
-            css: {
-              'target-arrow-shape': 'triangle'
-            }
-          },
-          {
-            selector: ':selected',
-            css: {
-              'background-color': 'black',
-              'line-color': 'black',
-              'target-arrow-color': 'black',
-              'source-arrow-color': 'black'
-            }
-          }
-        ],
-        elements: {
-          nodes: [
-            {data: {id: 'a', parent: 'b'}},
-            {data: {id: 'b'}},
-            {data: {id: 'c', parent: 'b'}},
-            {data: {id: 'd'}},
-            {data: {id: 'e'}},
-            {data: {id: 'f', parent: 'e'}}
-          ],
-          edges: [
-            {data: {id: 'ad', source: 'b', target: 'd'}},
-            {data: {id: 'eb', source: 'e', target: 'b'}}
-
-          ]
-        },
-        layout: {
-          name: 'cose2',
-          padding: 5
-        }
-      });
-
       message(foo());
     });
-
     t.on('message', function (e) {
       expect(e.message).to.equal('bar');
-
       t.stop();
-
       next();
     });
   });
-
   it('requires a function with a prototype', function (next) {
     var t = $$.Thread();
-
     function foo() {
 
     }
@@ -214,25 +182,18 @@ describe('Thread', function () {
     foo.prototype.bar = function () {
       return 'baz';
     };
-
     t.require(foo);
-
     t.run(function () {
       broadcast((new foo()).bar());
     });
-
     t.on('message', function (e) {
       expect(e.message).to.equal('baz');
-
       t.stop();
-
       next();
     });
   });
-
   it('requires a function with a subfunction', function (next) {
     var t = $$.Thread();
-
     function foo() {
 
     }
@@ -240,34 +201,25 @@ describe('Thread', function () {
     foo.bar = function () {
       return 'baz';
     };
-
     t.require(foo);
-
     t.run(function () {
       broadcast(foo.bar());
     });
-
     t.on('message', function (e) {
       expect(e.message).to.equal('baz');
-
       t.stop();
-
       next();
     });
   });
-
   it('requires a function with a specified name', function (next) {
     var t = $$.Thread();
-
     t.require(function () {
       return 'bar';
     }, 'bar');
-
     t.run(function () {
       resolve(bar());
     }).then(function (ret) {
       expect(ret).to.equal('bar');
-
       t.stop();
       next();
     });
@@ -306,7 +258,6 @@ describe('Thread', function () {
   it('calls multiple runs in order', function (next) {
     var t = $$.Thread();
     var thens = [];
-
     t.promise(function () {
       // console.log('resolve(0)');
 
@@ -314,7 +265,6 @@ describe('Thread', function () {
     }).then(function (r) {
       thens.push(r);
     });
-
     t.run(function () {
       // console.log('resolve(1)');
 
@@ -322,7 +272,6 @@ describe('Thread', function () {
     }).then(function (r) {
       thens.push(r);
     });
-
     t.run(function () {
       // console.log('resolve(2)');
 
@@ -330,77 +279,57 @@ describe('Thread', function () {
     }).then(function (r) {
       thens.push(r);
     });
-
     setTimeout(function () {
       expect(thens).to.deep.equal([0, 1, 2]);
-
       t.stop();
-
       next();
     }, 250);
   });
-
   it('passes a string param', function (next) {
     var t = $$.Thread();
-
     t.pass('foo').run(function (param) {
       broadcast(param);
     });
-
     t.on('message', function (e) {
       expect(e.message).to.equal('foo');
-
       t.stop();
-
       next();
     });
   });
-
   it('passes an object param', function (next) {
     var t = $$.Thread();
-
     t.pass({foo: 'bar'}).run(function (param) {
       broadcast(param);
     });
-
     t.on('message', function (e) {
       expect(e.message).to.deep.equal({foo: 'bar'});
-
       t.stop();
-
       next();
     });
   });
-
   it('passes correctly for multiple runs', function (next) {
     var t = $$.Thread();
     var vals = [];
-
     t.pass('alpha').run(function (param) {
       resolve(param + '-beta');
     }).then(function (val) {
       vals.push(val);
     });
-
     t.pass('gamma').run(function (param) {
       resolve(param + '-delta');
     }).then(function (val) {
       vals.push(val);
     });
-
     t.pass('epsilon').run(function (param) {
       resolve(param + '-zeta');
     }).then(function (val) {
       vals.push(val);
     });
-
     setTimeout(function () {
       expect(vals.length).to.equal(3);
-
       for (var i = 0; i < vals.length; i++) {
         var val = vals[i];
         var ls = val.split('-');
-
         if (ls[0] === 'alpha') {
           expect(ls[1]).to.equal('beta');
         } else if (ls[0] === 'gamma') {
@@ -413,50 +342,40 @@ describe('Thread', function () {
       t.stop();
       next();
     }, 250);
-
   });
-
   it('passes correctly for multiple runs with gaps', function (next) {
     var t = $$.Thread();
     var vals = [];
-
     t.pass('alpha').run(function (param) {
       resolve(param + '-beta');
     }).then(function (val) {
       vals.push(val);
     });
-
     t.run(function (param) {
       resolve('gap');
     }).then(function (val) {
       vals.push(val);
     });
-
     t.pass('gamma').run(function (param) {
       resolve(param + '-delta');
     }).then(function (val) {
       vals.push(val);
     });
-
     t.run(function (param) {
       resolve('gap');
     }).then(function (val) {
       vals.push(val);
     });
-
     t.pass('epsilon').run(function (param) {
       resolve(param + '-zeta');
     }).then(function (val) {
       vals.push(val);
     });
-
     setTimeout(function () {
       expect(vals.length).to.equal(5);
-
       for (var i = 0; i < vals.length; i++) {
         var val = vals[i];
         var ls = val.split('-');
-
         if (ls[0] === 'alpha') {
           expect(ls[1]).to.equal('beta');
         } else if (ls[0] === 'gamma') {
@@ -471,26 +390,20 @@ describe('Thread', function () {
       t.stop();
       next();
     }, 250);
-
   });
-
   it('maps correctly', function (next) {
     var t = $$.Thread();
     var mapper = function (n) {
       return Math.pow(2, n);
     };
     var data = [1, 2, 3, 4];
-
     t.pass(data).map(mapper).then(function (mapped) {
       var expMapped = data.map(mapper);
-
       expect(mapped).to.deep.equal(expMapped);
-
       t.stop();
       next();
     });
   });
-
   it('maps correctly via resolve()', function (next) {
     var t = $$.Thread();
     var mapper = function (n) {
@@ -501,50 +414,39 @@ describe('Thread', function () {
     };
     var data = [1, 2, 3, 4];
     var expMapped = data.map(fnmapper);
-
     t.pass(data).map(mapper).then(function (mapped) {
 
       expect(mapped).to.deep.equal(expMapped);
-
       t.stop();
       next();
     });
   });
-
   it('reduces correctly', function (next) {
     var t = $$.Thread();
     var reducer = function (prev, current, index, array) {
       return prev - current;
     };
     var data = [1, 2, 3, 4];
-
     t.pass(data).reduce(reducer).then(function (res) {
       var exp = data.reduce(reducer);
-
       expect(res).to.deep.equal(exp);
-
       t.stop();
       next();
     });
   });
-
   it('reduces right correctly', function (next) {
     var t = $$.Thread();
     var reducer = function (prev, current) {
       return prev - current;
     };
     var data = [1, 2, 3, 4];
-
     t.pass(data).reduceRight(reducer).then(function (res) {
       var exp = data.reduceRight(reducer);
-
       expect(res).to.deep.equal(exp);
-
       t.stop();
       next();
     });
   });
-
   // because .map() etc has to be serialised with a special global name
   it('allows successive uses of map', function (next) {
     var t = $$.Thread();
@@ -555,23 +457,17 @@ describe('Thread', function () {
       return Math.pow(3, n);
     };
     var data = [1, 2, 3, 4];
-
     t.pass(data).map(mapper1).then(function (mapped) {
       var expMapped = data.map(mapper1);
-
       expect(mapped).to.deep.equal(expMapped);
     });
-
     t.pass(data).map(mapper2).then(function (mapped) {
       var expMapped = data.map(mapper2);
-
       expect(mapped).to.deep.equal(expMapped);
-
       t.stop();
       next();
     });
   });
-
 });
 
 
