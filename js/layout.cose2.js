@@ -6272,9 +6272,9 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
 'use strict';
   var DEBUG;
 
-  var allChildren = [];
-  var idToLNode = {};
-  var toBeTiled = {};
+  _CoSELayout.allChildren = [];
+  _CoSELayout.idToLNode = {};
+  _CoSELayout.toBeTiled = {};
 
   var defaults = {
     // Called on `layoutready`
@@ -6326,9 +6326,9 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
   }
 
   _CoSELayout.prototype.run = function () {
-    allChildren = [];
-    idToLNode = {};
-    toBeTiled = {};
+    _CoSELayout.allChildren = [];
+    _CoSELayout.idToLNode = {};
+    _CoSELayout.toBeTiled = {};
     layout = new CoSELayout();
     //var options = this.options;
 //    var layout = this;
@@ -6350,10 +6350,10 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
       var theNode = nodes[i];
       var p_id = theNode.data("parent");
       if (p_id != null) {
-        if (allChildren[p_id] == null) {
-          allChildren[p_id] = [];
+        if (_CoSELayout.allChildren[p_id] == null) {
+          _CoSELayout.allChildren[p_id] = [];
         }
-        allChildren[p_id].push(theNode);
+        _CoSELayout.allChildren[p_id].push(theNode);
       }
       else {
         this.orphans.push(theNode);
@@ -6377,8 +6377,8 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
 
     for (var i = 0; i < edges.length; i++) {
       var edge = edges[i];
-      var sourceNode = idToLNode[edge.data("source")];
-      var targetNode = idToLNode[edge.data("target")];
+      var sourceNode = _CoSELayout.idToLNode[edge.data("source")];
+      var targetNode = _CoSELayout.idToLNode[edge.data("target")];
       var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
 
       if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
@@ -6406,7 +6406,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
 
     this.options.eles.nodes().positions(function (i, ele) {
       var theId = ele.data('id');
-      var lNode = idToLNode[theId];
+      var lNode = _CoSELayout.idToLNode[theId];
       console.log(theId + "\t" + lNode.getRect().getX() + "\t" + lNode.getRect().getY());
 
       return {
@@ -6434,14 +6434,14 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
   var getToBeTiled = function (node) {
     var id = node.data("id");
     //firstly check the previous results
-    if (toBeTiled[id] != null) {
-      return toBeTiled[id];
+    if (_CoSELayout.toBeTiled[id] != null) {
+      return _CoSELayout.toBeTiled[id];
     }
 
     //only compound nodes are to be tiled
     var children = node.children();
     if (children == null || children.length == 0) {
-      toBeTiled[id] = false;
+      _CoSELayout.toBeTiled[id] = false;
       return false;
     }
 
@@ -6450,22 +6450,22 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
       var theChild = children[i];
 
       if (theChild.degree(false) > 0) {
-        toBeTiled[id] = false;
+        _CoSELayout.toBeTiled[id] = false;
         return false;
       }
 
       //pass the children not having the compound structure
       if (theChild.children() == null || theChild.children().length == 0) {
-        toBeTiled[theChild.data("id")] = false;
+        _CoSELayout.toBeTiled[theChild.data("id")] = false;
         continue;
       }
 
       if (!getToBeTiled(theChild)) {
-        toBeTiled[id] = false;
+        _CoSELayout.toBeTiled[id] = false;
         return false;
       }
     }
-    toBeTiled[id] = true;
+    _CoSELayout.toBeTiled[id] = true;
     return true;
   }
 
@@ -6559,7 +6559,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
 
     for (var i = 0; i < complexOrder.length; i++) {
       // find the corresponding layout node
-      var lComplexNode = idToLNode[complexOrder[i].id()];
+      var lComplexNode = _CoSELayout.idToLNode[complexOrder[i].id()];
 
       childGraphMap[complexOrder[i].id()] = complexOrder[i].children();
 
@@ -6584,7 +6584,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
     var tiledZeroDegreePack = [];
 
     for (var id in memberGroups) {
-      var complexNode = idToLNode[id];
+      var complexNode = _CoSELayout.idToLNode[id];
 
       tiledZeroDegreePack[id] = this.tileNodes(memberGroups[id]);
 
@@ -6600,7 +6600,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
    */
   _CoSELayout.prototype.repopulateComplexes = function (tiledMemberPack) {
     for (var i in tiledMemberPack) {
-      var lComplexNode = idToLNode[i];
+      var lComplexNode = _CoSELayout.idToLNode[i];
 
 //      this.adjustLocations(tiledMemberPack[i], lComplexNode.rect.x - lComplexNode.rect.width / 2, 
 //        lComplexNode.rect.y - lComplexNode.rect.height / 2 );
@@ -6615,7 +6615,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
   _CoSELayout.prototype.repopulateZeroDegreeMembers = function (tiledPack) {
     for (var i in tiledPack) {
       var complex = this.cy.getElementById(i);
-      var complexNode = idToLNode[i];
+      var complexNode = _CoSELayout.idToLNode[i];
 
       // Adjust the positions of nodes wrt its complex
 //        this.adjustLocations(tiledPack[i], complexNode.rect.x - complexNode.rect.width / 2, 
@@ -6673,7 +6673,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
 
     for (var id in childGraphMap) {
       // Access layoutInfo nodes to set the width and height of complexes
-      var complexNode = idToLNode[id];
+      var complexNode = _CoSELayout.idToLNode[id];
 
       tiledMemberPack[id] = this.tileNodes(childGraphMap[id]);
 
@@ -6704,7 +6704,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
     // Get layout nodes
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
-      var lNode = idToLNode[node.id()];
+      var lNode = _CoSELayout.idToLNode[node.id()];
 
       var owner = lNode.owner;
       owner.remove(lNode);
@@ -6953,7 +6953,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
         theNode = parent.add(new CoSENode(this.graphManager));
       }
       theNode.id = theChild.data("id");
-      idToLNode[theChild.data("id")] = theNode;
+      _CoSELayout.idToLNode[theChild.data("id")] = theNode;
 
       if (isNaN(theNode.rect.x)) {
         theNode.rect.x = 0;
@@ -6974,6 +6974,6 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
 
 
   // register the layout
-  $$('layout', 'cose', _CoSELayout);
+  $$('layout', 'cose2', _CoSELayout);
 
 })(cytoscape);
