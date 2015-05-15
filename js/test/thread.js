@@ -4,6 +4,66 @@ var $$ = cytoscape;
 var isNode = typeof module !== 'undefined';
 
 describe('Thread', function () {
+  var cy;
+
+  beforeEach(function (done) {
+    cy = cytoscape({
+      style: [
+        {
+          selector: 'node',
+          css: {
+            'content': 'data(id)',
+            'text-valign': 'center',
+            'text-halign': 'center'
+          }
+        },
+        {
+          selector: '$node > node',
+          css: {
+            'padding-top': '10px',
+            'padding-left': '10px',
+            'padding-bottom': '10px',
+            'padding-right': '10px',
+            'text-valign': 'top',
+            'text-halign': 'center'
+          }
+        },
+        {
+          selector: 'edge',
+          css: {
+            'target-arrow-shape': 'triangle'
+          }
+        },
+        {
+          selector: ':selected',
+          css: {
+            'background-color': 'black',
+            'line-color': 'black',
+            'target-arrow-color': 'black',
+            'source-arrow-color': 'black'
+          }
+        }
+      ],
+      elements: {
+        nodes: [
+          {data: {id: 'a', parent: 'b'}},
+          {data: {id: 'b'}},
+          {data: {id: 'c', parent: 'b'}},
+          {data: {id: 'd'}},
+          {data: {id: 'e'}},
+          {data: {id: 'f', parent: 'e'}}
+        ],
+        edges: [
+          {data: {id: 'ad', source: 'b', target: 'd'}},
+          {data: {id: 'eb', source: 'e', target: 'b'}}
+
+        ]
+      },
+      ready: function () {
+        done();
+      }
+    });
+  });
 
   if (isNode) {
     console.log('isNode')
@@ -95,83 +155,21 @@ describe('Thread', function () {
   });
   it('requires a named function', function (next) {
     var t = $$.Thread();
-    var cy = $$({
-      container: document.getElementById('cy'),
-      style: [
-        {
-          selector: 'node',
-          css: {
-            'content': 'data(id)',
-            'text-valign': 'center',
-            'text-halign': 'center'
-          }
-        },
-        {
-          selector: '$node > node',
-          css: {
-            'padding-top': '10px',
-            'padding-left': '10px',
-            'padding-bottom': '10px',
-            'padding-right': '10px',
-            'text-valign': 'top',
-            'text-halign': 'center'
-          }
-        },
-        {
-          selector: 'edge',
-          css: {
-            'target-arrow-shape': 'triangle'
-          }
-        },
-        {
-          selector: ':selected',
-          css: {
-            'background-color': 'black',
-            'line-color': 'black',
-            'target-arrow-color': 'black',
-            'source-arrow-color': 'black'
-          }
-        }
-      ],
-      elements: {
-        nodes: [
-          {data: {id: 'a', parent: 'b'}},
-          {data: {id: 'b'}},
-          {data: {id: 'c', parent: 'b'}},
-          {data: {id: 'd'}},
-          {data: {id: 'e'}},
-          {data: {id: 'f', parent: 'e'}}
-        ],
-        edges: [
-          {data: {id: 'ad', source: 'b', target: 'd'}},
-          {data: {id: 'eb', source: 'e', target: 'b'}}
-
-        ]
-      },
-      layout: {
-        name: 'cose2',
-        padding: 5
-      }
-    });
-    function foo() {
+    
+    function foo(cy) {
       var options = {
         name: 'cose2',
         padding: 5
-      }
-
+      };
       cy.layout(options);
-      return 'bar';
     }
 
     t.require(foo);
-    t.run(function () {
-      message(foo());
+    t.pass( cy ).run(function (param) {
+      foo(param);
     });
-    t.on('message', function (e) {
-      expect(e.message).to.equal('bar');
-      t.stop();
-      next();
-    });
+    t.stop();
+
   });
   it('requires a function with a prototype', function (next) {
     var t = $$.Thread();
