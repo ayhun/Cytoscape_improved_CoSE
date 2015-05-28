@@ -1892,15 +1892,6 @@ LEdge.prototype.updateLengthSimple = function ()
 // -----------------------------------------------------------------------------
 // Section: Testing methods
 // -----------------------------------------------------------------------------
-/**
- * This method prints the topology of this edge.
- */
-LEdge.prototype.printTopology = function ()
-{
-//  console.log( (this.label == null ? "?" : this.label) + "[" +
-//    (this.source.label == null ? "?" : this.source.label) + "-" +
-//    (this.target.label == null ? "?" : this.target.label) + "] ");
-}
 
 function LGraph(parent, obj2, vGraph) {
   LGraphObject.call(this, vGraph);
@@ -2530,26 +2521,6 @@ LGraph.prototype.reverse = function (edge)
   edge.target = swap;
 };
 
-/**
- * This method prints the topology of this graph.
- */
-LGraph.prototype.printTopology = function ()
-{
-//  var str = "?";
-//  if(this.label != null){
-//    str = this.label;
-//  }
-//  console.log(str + ": ");
-//  console.log("Nodes: ");
-  var node;
-  var nodes = this.nodes;
-  var s = nodes.length;
-  for (var i = 0; i < s; i++)
-  {
-    node = nodes[i];
-    node.printTopology();
-  }
-};
 
 /* 
  * To change this license header, choose License Headers in Project Properties.
@@ -3212,26 +3183,6 @@ LGraphManager.prototype.includesInvalidEdge = function ()
   return false;
 };
 
-/**
- * This method prints the topology of this graph manager.
- */
-LGraphManager.prototype.printTopology = function ()
-{
-  this.rootGraph.printTopology();
-
-  var graph;
-  var s = this.graphs.length;
-
-  for (var i = 0; i < s; i++)
-  {
-    graph = this.graphs[i];
-
-    if (graph != this.rootGraph)
-    {
-      graph.printTopology();
-    }
-  }
-};
 
 function LGraphObject(vGraphObject) {
   /**
@@ -3874,13 +3825,6 @@ LNode.random = new RandomSeed(Layout.RANDOM_SEED);
 // -----------------------------------------------------------------------------
 // Section: Testing methods
 // -----------------------------------------------------------------------------
-/**
- * This method prints the topology of this node.
- */
-LNode.prototype.printTopology = function ()
-{
-  console.log(this.rect.x + "\t" + this.rect.getY() + "\t" + this.rect.getWidth() + "\t" + this.rect.getHeight());
-}
 
 function Layout(isRemoteUse) {
   /**
@@ -6326,23 +6270,101 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
   }
 
   _CoSELayout.prototype.run = function () {
-    _CoSELayout.allChildren = [];
-    _CoSELayout.idToLNode = {};
-    _CoSELayout.toBeTiled = {};
-    layout = new CoSELayout();
-    //var options = this.options;
-//    var layout = this;
-
     // cy is automatically populated for us in the constructor
     this.cy = this.options.cy; // jshint ignore:line;
 
     this.cy.trigger('layoutstart');
+    
+    var passableOptions = {};
+    
+    for(var prop in this.options){
+      if( prop != 'cy' && prop != 'eles' ){
+        passableOptions[prop] = this.options[prop];
+      }
+    }
+        
 
-    var gm = layout.newGraphManager();
-    this.gm = gm;
-
+    
     var nodes = this.options.eles.nodes();
     var edges = this.options.eles.edges();
+    
+        // First I need to create the data structure to pass to the worker
+      var pData = {
+        'nodes': [],
+        'edges': [],
+        'options': passableOptions
+      };
+
+      nodes.each(
+        function( i, node ) {
+          var nodeId = this._private.data.id;
+          var parentId = node.parent().id();
+          var w=node.width();
+          var h=node.height();
+          pData[ 'nodes' ].push( {
+            id: nodeId,
+            pid: parentId,
+            x: 0,
+            y: 0,
+            width: w,
+            height: h
+          } );
+        } );
+
+      edges.each(
+        function() {
+          var srcNodeId = this.source().id();
+          var tgtNodeId = this.target().id();
+          var edgeId = this._private.data.id;
+          pData[ 'edges' ].push( {
+            id: edgeId,
+            src: srcNodeId,
+            tgt: tgtNodeId
+          } );
+        } );
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    var t1 = $$.Thread();
+
+t1.require(_CoSELayout);
+t1.require(CoSELayout);
+t1.require(FDLayout);
+t1.require(Layout);
+t1.require(LayoutConstants);
+t1.require(HashMap);
+t1.require(LGraphManager);
+t1.require(FDLayoutConstants);
+t1.require(CoSEGraphManager);
+t1.require(CoSEGraph);
+t1.require(LGraph);
+t1.require(LGraphObject);
+t1.require(Integer);
+t1.require(CoSENode);
+
+    t1.pass( pData ).run( function( pData ) {
+      var log = function(msg){
+        broadcast({log: msg});
+      }
+      //log('deneme1');
+      
+    _CoSELayout.allChildren = [];
+    log('deneme2');
+    _CoSELayout.idToLNode = {};
+    log('deneme3');
+    _CoSELayout.toBeTiled = {};
+    log('deneme4');
+    layout = new CoSELayout();
+    log(layout);
+    var gm = layout.newGraphManager();
+    this.gm = gm;
 
     this.root = gm.addRoot();
     this.orphans = [];
@@ -6397,13 +6419,39 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
       this.options.eles.nodes().updateCompoundBounds();
     }
 
+    } ).then( function( pData ) {
+        // var expandIteration = pData[ 'expIt' ];
+        var dataVertices = pData[ 'vertices' ];
 
+        setPositions( pData );
+
+        layout.one( "layoutstop", options.stop );
+
+        
+        layout.trigger( "layoutready" );
+        
+
+        layout.trigger( "layoutstop" );
+
+        t1.stop();
+      } );
+      
+   t1.on('message', function( e ){
+        var logMsg = e.message.log;
+        if(logMsg != null){
+          console.log( 'Thread log: ' + logMsg );
+          return;
+        }
+          
+        t1.stop();
+      });  
+      
 
     //add nodes to the graph manager in correct order
 //    this.processChildrenList(root, orphans);
 
 
-
+/*
     this.options.eles.nodes().positions(function (i, ele) {
       var theId = ele.data('id');
       var lNode = _CoSELayout.idToLNode[theId];
@@ -6419,7 +6467,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
       this.options.cy.fit(this.options.padding);
 
     console.log(FDLayoutConstants.DEFAULT_EDGE_LENGTH);
-
+*/
     //trigger layoutready when each node has had its position set at least once
     this.cy.one('layoutready', this.options.ready);
     this.cy.trigger('layoutready');
