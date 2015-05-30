@@ -1097,14 +1097,13 @@
     }
   };
 
-  function RandomSeed(_seed) {
-    this.seed = _seed;
-    this.x = 0;
+  function RandomSeed() {
   }
-
-  RandomSeed.prototype.nextDouble = function () {
-    this.x = Math.sin(this.seed++) * 10000;
-    return this.x - Math.floor(this.x);
+  RandomSeed.seed = 1;
+  RandomSeed.x = 0;
+  RandomSeed.nextDouble = function () {
+    RandomSeed.x = Math.sin(RandomSeed.seed++) * 10000;
+    return RandomSeed.x - Math.floor(RandomSeed.x);
   };
 
   function RectangleD(x, y, width, height) {
@@ -3659,12 +3658,12 @@
     var minX = -LayoutConstants.INITIAL_WORLD_BOUNDARY;
     var maxX = LayoutConstants.INITIAL_WORLD_BOUNDARY;
     randomCenterX = LayoutConstants.WORLD_CENTER_X +
-            (LNode.random.nextDouble() * (maxX - minX)) + minX;
+            (RandomSeed.nextDouble() * (maxX - minX)) + minX;
 
     var minY = -LayoutConstants.INITIAL_WORLD_BOUNDARY;
     var maxY = LayoutConstants.INITIAL_WORLD_BOUNDARY;
     randomCenterY = LayoutConstants.WORLD_CENTER_Y +
-            (LNode.random.nextDouble() * (maxY - minY)) + minY;
+            (RandomSeed.nextDouble() * (maxY - minY)) + minY;
 
     this.rect.x = randomCenterX;
     this.rect.y = randomCenterY
@@ -3820,7 +3819,7 @@
   /*
    * Used for random initial positioning
    */
-  LNode.random = new RandomSeed(Layout.RANDOM_SEED);
+  //LNode.random = new RandomSeed(Layout.RANDOM_SEED);
 
 // -----------------------------------------------------------------------------
 // Section: Testing methods
@@ -6266,7 +6265,7 @@
     tile: true
   };
 
-  var layout = new CoSELayout();
+  
   function _CoSELayout(options) {
 
     this.options = $$.util.extend({}, defaults, options);
@@ -6338,21 +6337,38 @@
 
 
     var t1 = $$.Thread();
-
-    t1.require(_CoSELayout);
-    t1.require(CoSELayout);
-    t1.require(FDLayout);
+    t1.require(DimensionD);
+    t1.require(HashMap);
+    t1.require(HashSet);
+    t1.require(IGeometry);
+    t1.require(IMath);
+    t1.require(Integer);
+    t1.require(Point);
+    t1.require(PointD);
+    t1.require(QuickSort);
+    t1.require(RandomSeed);
+    t1.require(RectangleD);
+    t1.require(Transform);
+    t1.require(UniqueIDGeneretor);
+    t1.require(LGraphObject);
+    t1.require(LGraph);
+    t1.require(LEdge);
+    t1.require(LGraphManager);
+    t1.require(LNode);
     t1.require(Layout);
     t1.require(LayoutConstants);
-    t1.require(HashMap);
-    t1.require(LGraphManager);
+    //t1.require(layoutOptionsPack);
+    t1.require(FDLayout);
     t1.require(FDLayoutConstants);
-    t1.require(CoSEGraphManager);
+    t1.require(FDLayoutEdge);
+    t1.require(FDLayoutNode);
+    t1.require(CoSEConstants);
+    t1.require(CoSEEdge);
     t1.require(CoSEGraph);
-    t1.require(LGraph);
-    t1.require(LGraphObject);
-    t1.require(Integer);
-    t1.require(CoSENode);
+    t1.require(CoSEGraphManager);
+    t1.require(CoSELayout);
+    t1.require(CoSENode);   
+    t1.require(_CoSELayout);
 
     t1.pass(pData).run(function (pData) {
       var log = function (msg) {
@@ -6366,7 +6382,7 @@
       log('deneme3');
       _CoSELayout.toBeTiled = {};
       log('deneme4');
-      layout = new CoSELayout();
+      var layout = new CoSELayout();
       log(layout);
       var gm = layout.newGraphManager();
       this.gm = gm;
