@@ -6434,7 +6434,27 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
         broadcast({log: msg});
       };
       
-      layout.newGraphManager();
+      var layout = new CoSELayout();
+      var gm = layout.newGraphManager();
+      
+      var processNodes = function(){
+        
+      }
+      
+      this.orphans = [];
+      for (var i = 0; i < nodes.length; i++) {
+        var theNode = nodes[i];
+        var p_id = theNode.data("parent");
+        if (p_id != null) {
+          if (_CoSELayout.allChildren[p_id] == null) {
+            _CoSELayout.allChildren[p_id] = [];
+          }
+          _CoSELayout.allChildren[p_id].push(theNode);
+        }
+        else {
+          this.orphans.push(theNode);
+        }
+      }
       //------------------------------------------------
       //var gm = layout.newGraphManager();
       // var root = gm.addRoot();
