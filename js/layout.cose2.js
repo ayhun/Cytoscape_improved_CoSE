@@ -6340,7 +6340,7 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
 
     var gm = layout.newGraphManager();
     this.gm = gm;
-
+    
     var nodes = this.options.eles.nodes();
     var edges = this.options.eles.edges();
 
@@ -6384,8 +6384,99 @@ CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
       if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
         var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
     }
+    
+    var t1 = $$.Thread();
+    var finished = false;
+    
+    var nodes = this.options.eles.nodes();
+    var edges = this.options.eles.edges();
 
-    layout.runLayout();
+    // First I need to create the data structure to pass to the worker
+    var pData = {
+      'nodes': [],
+      'edges': []
+    };
+
+    nodes.each(
+            function (i, node) {
+              var nodeId = this._private.data.id;
+              var parentId = node.parent().id();
+              var w = node.width();
+              var posX=node.position('x');
+              var posY=node.position('y');
+              var h = node.height();
+              pData[ 'nodes' ].push({
+                id: nodeId,
+                pid: parentId,
+                x: posX,
+                y: posY,
+                width: w,
+                height: h
+              });
+            });
+
+    edges.each(
+            function () {
+              var srcNodeId = this.source().id();
+              var tgtNodeId = this.target().id();
+              var edgeId = this._private.data.id;
+              pData[ 'edges' ].push({
+                id: edgeId,
+                src: srcNodeId,
+                tgt: tgtNodeId
+              });
+            });
+    
+    
+    
+    t1.pass(pData).run(function (pData) {      
+      var log = function (msg) {
+        broadcast({log: msg});
+      };
+      
+      layout.newGraphManager();
+      //------------------------------------------------
+      //var gm = layout.newGraphManager();
+      // var root = gm.addRoot();
+      var orphans = [];
+      
+      // Get nodes and edges from pData
+      
+      /*for (var i = 0; i < nodes.length; i++) {
+      var theNode = nodes[i];
+      var p_id = theNode.data("parent");
+      if (p_id != null) {
+        if (_CoSELayout.allChildren[p_id] == null) {
+          _CoSELayout.allChildren[p_id] = [];
+        }
+        _CoSELayout.allChildren[p_id].push(theNode);
+      }
+      else {
+        this.orphans.push(theNode);
+      }
+    }*/
+      //------------------------------------------------
+      //log("asd:" + layout.layoutQuality)
+      //layout.layoutQuality = "asdasdasdads";
+      return true;//.runLayout();
+    }).then(function (results) {
+      finished = true;
+      layout.graphManager = oldGraphManager;
+      //layout = layout_;
+      t1.stop();
+    });
+    
+    t1.on('message', function (e) {
+      var logMsg = e.message.log;
+      if (logMsg != null) {
+        console.log('Thread log: ' + logMsg);
+        return;
+      }
+    });
+    
+    
+    //while(!finished);
+    //Thread.sleep(3000);
 
     if (this.options.tile) {
 

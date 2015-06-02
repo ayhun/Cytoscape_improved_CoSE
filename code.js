@@ -42,16 +42,17 @@ var cy = cytoscape({
   
   elements: {
     nodes: [
-      { data: { id: 'a', parent: 'b' } },
-      { data: { id: 'b' } },
-      { data: { id: 'c', parent: 'b' } },
-      { data: { id: 'd' } },
-      { data: { id: 'e' } },
-      { data: { id: 'f', parent: 'e' } }
+      { data: { id: 'a', parent: 'b' }, position : { x: 0, y: 0} },
+      { data: { id: 'b' }, position : { x: 0, y: 0} },
+      { data: { id: 'c', parent: 'b' }, position : { x: 0, y: 0} },
+      { data: { id: 'd' }, position : { x: 0, y: 0} },
+      { data: { id: 'e' }, position : { x: 0, y: 0} },
+      { data: { id: 'f', parent: 'e' }, position : { x: 0, y: 0} }
     ],
     edges: [
       { data: { id: 'ad', source: 'b', target: 'd' } },
-      { data: { id: 'eb', source: 'e', target: 'b' } }
+      { data: { id: 'eb', source: 'e', target: 'b' } },
+      { data: { id: 'cd', source: 'c', target: 'd' } }
       
     ]
   },
