@@ -4713,7 +4713,8 @@
   LayoutConstants.WORLD_CENTER_X = 1200;
   LayoutConstants.WORLD_CENTER_Y = 900;
 
-  function layoutOptionsPack(){}
+  function layoutOptionsPack() {
+  }
 
   layoutOptionsPack.layoutQuality; // proof, default, draft
   layoutOptionsPack.animationDuringLayout; // T-F
@@ -6340,6 +6341,7 @@
 
     // cy is automatically populated for us in the constructor
     this.cy = this.options.cy; // jshint ignore:line;
+    var after = this;
 
     this.cy.trigger('layoutstart');
 
@@ -6389,8 +6391,8 @@
       if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
         var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
     }
-    
-    
+
+
     var t1 = $$.Thread();
     t1.require(DimensionD);
     t1.require(HashMap);
@@ -6473,19 +6475,24 @@
       };
 
       log("start thread");
-      
+
       //the layout will be run in the thread and the results are to be passed
       //to the main thread with the result map
       var layout_t = new CoSELayout();
       var gm_t = layout_t.newGraphManager();
-      
+
 //      var root_t = gm_t.addRoot();
-      var ngraph = gm_t.layout.newGraph();console.log("here1");
-      var nnode = gm_t.layout.newNode(null);console.log("here2");
-      var root = gm_t.add(ngraph, nnode);console.log("here3");
+      var ngraph = gm_t.layout.newGraph();
+      console.log("here1");
+      var nnode = gm_t.layout.newNode(null);
+      console.log("here2");
+      var root = gm_t.add(ngraph, nnode);
+      console.log("here3");
       root.graphManager = gm_t;
-      gm_t.setRootGraph(root);console.log("here4");
-      var root_t = gm_t.rootGraph;console.log("here5");
+      gm_t.setRootGraph(root);
+      console.log("here4");
+      var root_t = gm_t.rootGraph;
+      console.log("here5");
 
       //maps for inner usage of the thread
       var orphans_t = [];
@@ -6495,9 +6502,9 @@
       //A map of node id to corresponding node position and sizes
       //it is to be returned at the end of the thread function
       var result = {};
-      
+
 //      log("here 6");
-      
+
       //this function is similar to processChildrenList function in the main thread
       //it is to process the nodes in correct order recursively
       var processNodes = function (parent, children) {
@@ -6536,7 +6543,7 @@
           }
         }
       }
-      
+
       //fill the chidrenMap and orphans_t maps to process the nodes in the correct order
       var nodes = pData.nodes;
       for (var i = 0; i < nodes.length; i++) {
@@ -6562,7 +6569,7 @@
         var sourceNode = idToLNode_t[edge.source];
         var targetNode = idToLNode_t[edge.target];
         var e1 = gm_t.add(layout_t.newEdge(), sourceNode, targetNode);
-        
+
 //        if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
 //          var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
       }
@@ -6598,6 +6605,47 @@
         lNode.rect.height = node.h;
       }
       finished = true;
+      after;
+      if (after.options.tile) {
+
+        // Repopulate members
+        after.repopulateZeroDegreeMembers(tiledZeroDegreeNodes);
+
+        after.repopulateComplexes(tiledMemberPack);
+
+        after.options.eles.nodes().updateCompoundBounds();
+      }
+
+
+
+      //add nodes to the graph manager in correct order
+//    this.processChildrenList(root, orphans);
+
+
+
+      after.options.eles.nodes().positions(function (i, ele) {
+        var theId = ele.data('id');
+        var lNode = _CoSELayout.idToLNode[theId];
+        console.log(theId + "\t" + lNode.getRect().getX() + "\t" + lNode.getRect().getY());
+
+        return {
+          x: lNode.getRect().getCenterX(),
+          y: lNode.getRect().getCenterY()
+        };
+      });
+
+      if (after.options.fit)
+        after.options.cy.fit(after.options.padding);
+
+      console.log(FDLayoutConstants.DEFAULT_EDGE_LENGTH);
+
+      //trigger layoutready when each node has had its position set at least once
+      after.cy.one('layoutready', after.options.ready);
+      after.cy.trigger('layoutready');
+
+      // trigger layoutstop when the layout stops (e.g. finishes)
+      after.cy.one('layoutstop', after.options.stop);
+      after.cy.trigger('layoutstop');
       t1.stop();
     });
 
@@ -6609,50 +6657,10 @@
       }
     });
 
-
 //    while(!finished);
     //Thread.sleep(3000);
 
-    if (this.options.tile) {
 
-      // Repopulate members
-      this.repopulateZeroDegreeMembers(tiledZeroDegreeNodes);
-
-      this.repopulateComplexes(tiledMemberPack);
-
-      this.options.eles.nodes().updateCompoundBounds();
-    }
-
-
-
-    //add nodes to the graph manager in correct order
-//    this.processChildrenList(root, orphans);
-
-
-
-    this.options.eles.nodes().positions(function (i, ele) {
-      var theId = ele.data('id');
-      var lNode = _CoSELayout.idToLNode[theId];
-      console.log(theId + "\t" + lNode.getRect().getX() + "\t" + lNode.getRect().getY());
-
-      return {
-        x: lNode.getRect().getCenterX(),
-        y: lNode.getRect().getCenterY()
-      };
-    });
-
-    if (this.options.fit)
-      this.options.cy.fit(this.options.padding);
-
-    console.log(FDLayoutConstants.DEFAULT_EDGE_LENGTH);
-
-    //trigger layoutready when each node has had its position set at least once
-    this.cy.one('layoutready', this.options.ready);
-    this.cy.trigger('layoutready');
-
-    // trigger layoutstop when the layout stops (e.g. finishes)
-    this.cy.one('layoutstop', this.options.stop);
-    this.cy.trigger('layoutstop');
 
     return this; // chaining
   };
