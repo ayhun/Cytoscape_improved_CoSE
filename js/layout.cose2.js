@@ -1097,14 +1097,15 @@
     }
   };
 
-  function RandomSeed(_seed) {
-    this.seed = _seed;
-    this.x = 0;
+  function RandomSeed() {
   }
 
-  RandomSeed.prototype.nextDouble = function () {
-    this.x = Math.sin(this.seed++) * 10000;
-    return this.x - Math.floor(this.x);
+  RandomSeed.seed = 1;
+  RandomSeed.x = 0;
+
+  RandomSeed.nextDouble = function () {
+    RandomSeed.x = Math.sin(RandomSeed.seed++) * 10000;
+    return RandomSeed.x - Math.floor(RandomSeed.x);
   };
 
   function RectangleD(x, y, width, height) {
@@ -3708,12 +3709,12 @@
     var minX = -LayoutConstants.INITIAL_WORLD_BOUNDARY;
     var maxX = LayoutConstants.INITIAL_WORLD_BOUNDARY;
     randomCenterX = LayoutConstants.WORLD_CENTER_X +
-            (LNode.random.nextDouble() * (maxX - minX)) + minX;
+            (RandomSeed.nextDouble() * (maxX - minX)) + minX;
 
     var minY = -LayoutConstants.INITIAL_WORLD_BOUNDARY;
     var maxY = LayoutConstants.INITIAL_WORLD_BOUNDARY;
     randomCenterY = LayoutConstants.WORLD_CENTER_Y +
-            (LNode.random.nextDouble() * (maxY - minY)) + minY;
+            (RandomSeed.nextDouble() * (maxY - minY)) + minY;
 
     this.rect.x = randomCenterX;
     this.rect.y = randomCenterY
@@ -3870,7 +3871,6 @@
    * Used for random initial positioning
    */
 //  LNode.random = new RandomSeed(Layout.RANDOM_SEED);
-    LNode.random = new RandomSeed(1);
 // -----------------------------------------------------------------------------
 // Section: Testing methods
 // -----------------------------------------------------------------------------
@@ -4713,7 +4713,7 @@
   LayoutConstants.WORLD_CENTER_X = 1200;
   LayoutConstants.WORLD_CENTER_Y = 900;
 
-  var layoutOptionsPack = {};
+  function layoutOptionsPack(){}
 
   layoutOptionsPack.layoutQuality; // proof, default, draft
   layoutOptionsPack.animationDuringLayout; // T-F
@@ -6389,7 +6389,8 @@
       if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
         var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
     }
-
+    
+    
     var t1 = $$.Thread();
     t1.require(DimensionD);
     t1.require(HashMap);
@@ -6411,7 +6412,7 @@
     t1.require(LNode);
     t1.require(Layout);
     t1.require(LayoutConstants);
-    //t1.require(layoutOptionsPack);
+    t1.require(layoutOptionsPack);
     t1.require(FDLayout);
     t1.require(FDLayoutConstants);
     t1.require(FDLayoutEdge);
@@ -6470,24 +6471,33 @@
       var log = function (msg) {
         broadcast({log: msg});
       };
-      
+
       log("start thread");
       
       //the layout will be run in the thread and the results are to be passed
       //to the main thread with the result map
       var layout_t = new CoSELayout();
-      var gm_t = layout.newGraphManager();
-      var root_t = gm_t.addRoot();
+      var gm_t = layout_t.newGraphManager();
+      
+//      var root_t = gm_t.addRoot();
+      var ngraph = gm_t.layout.newGraph();console.log("here1");
+      var nnode = gm_t.layout.newNode(null);console.log("here2");
+      var root = gm_t.add(ngraph, nnode);console.log("here3");
+      root.graphManager = gm_t;
+      gm_t.setRootGraph(root);console.log("here4");
+      var root_t = gm_t.rootGraph;console.log("here5");
 
       //maps for inner usage of the thread
-      var orphans_t = {};
+      var orphans_t = [];
       var idToLNode_t = {};
       var childrenMap = {};
 
       //A map of node id to corresponding node position and sizes
       //it is to be returned at the end of the thread function
       var result = {};
-
+      
+//      log("here 6");
+      
       //this function is similar to processChildrenList function in the main thread
       //it is to process the nodes in correct order recursively
       var processNodes = function (parent, children) {
@@ -6520,7 +6530,8 @@
 
           if (children_of_children != null && children_of_children.length > 0) {
             var theNewGraph;
-            theNewGraph = layout.getGraphManager().add(layout.newGraph(), theNode);
+            theNewGraph = layout_t.getGraphManager().add(layout_t.newGraph(), theNode);
+            theNewGraph.graphManager = gm_t;
             processNodes(theNewGraph, children_of_children);
           }
         }
@@ -6550,33 +6561,35 @@
         var edge = edges[i];
         var sourceNode = idToLNode_t[edge.source];
         var targetNode = idToLNode_t[edge.target];
-        var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
-
+        var e1 = gm_t.add(layout_t.newEdge(), sourceNode, targetNode);
+        
 //        if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
 //          var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
       }
 
+      log("before run");
       //run the layout crated in this thread
-      layout.runLayout();
-      
+      layout_t.runLayout();
+      log("after run");
+
       //fill the result map
-      for(var id in idToLNode_t){
+      for (var id in idToLNode_t) {
         var lNode = idToLNode_t[id];
         var rect = lNode.rect;
         result[id] = {
           id: id,
-          x : rect.x,
-          y : rect.y,
-          w : rect.width,
-          h : rect.height
+          x: rect.x,
+          y: rect.y,
+          w: rect.width,
+          h: rect.height
         };
       }
-      
+      log("end");
       //return the result map to pass it to the then function as parameter
       return result;//.runLayout();
     }).then(function (result) {
       //refresh the lnode positions and sizes by using result map
-      for(var id in result){
+      for (var id in result) {
         var lNode = _CoSELayout.idToLNode[id];
         var node = result[id];
         lNode.rect.x = node.x;
