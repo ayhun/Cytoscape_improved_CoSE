@@ -52,7 +52,7 @@ var cy = cytoscape({
     edges: [
       { data: { id: 'ad', source: 'b', target: 'd' } },
       { data: { id: 'eb', source: 'e', target: 'b' } },
-      { data: { id: 'cd', source: 'c', target: 'd' } }
+      { data: { id: 'bd', source: 'b', target: 'd' } }
       
     ]
   },

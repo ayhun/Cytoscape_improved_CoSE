@@ -4024,6 +4024,7 @@
    */
   Layout.prototype.runLayout = function ()
   {
+//    broadcast({log: "here"});
     this.isLayoutFinished = false;
 
     if (!this.isSubLayout)
@@ -5704,13 +5705,22 @@
       this.calcGravitationalForces();
       this.moveNodes();
       this.animate();
-
-
-      var all = this.graphManager.getAllNodes();
-      var rect1 = all[0].rect;
-      var rect2 = all[1].rect;
-      var rect3 = all[2].rect;
-      var asd = 0;
+      if (this.totalIterations % 250 == 0) {
+        var allNodes = this.graphManager.getAllNodes();
+        var pData = {};
+        for (var i = 0; i < allNodes.length; i++) {
+          var rect = allNodes[i].rect;
+          var id = allNodes[i].id;
+          pData[id] = {
+            id: id,
+            x: rect.x,
+            y: rect.y,
+            w: rect.width,
+            h: rect.height
+          };
+        }
+        broadcast({pData: pData});
+      }
     }
     while (this.totalIterations < this.maxIterations);
 
@@ -6468,7 +6478,8 @@
             });
 
 
-
+    var ready = false;
+    
     t1.pass(pData).run(function (pData) {
       var log = function (msg) {
         broadcast({log: msg});
@@ -6483,16 +6494,11 @@
 
 //      var root_t = gm_t.addRoot();
       var ngraph = gm_t.layout.newGraph();
-      console.log("here1");
       var nnode = gm_t.layout.newNode(null);
-      console.log("here2");
       var root = gm_t.add(ngraph, nnode);
-      console.log("here3");
       root.graphManager = gm_t;
       gm_t.setRootGraph(root);
-      console.log("here4");
       var root_t = gm_t.rootGraph;
-      console.log("here5");
 
       //maps for inner usage of the thread
       var orphans_t = [];
@@ -6574,10 +6580,8 @@
 //          var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
       }
 
-      log("before run");
       //run the layout crated in this thread
       layout_t.runLayout();
-      log("after run");
 
       //fill the result map
       for (var id in idToLNode_t) {
@@ -6591,7 +6595,6 @@
           h: rect.height
         };
       }
-      log("end");
       //return the result map to pass it to the then function as parameter
       return result;//.runLayout();
     }).then(function (result) {
@@ -6604,8 +6607,6 @@
         lNode.rect.width = node.w;
         lNode.rect.height = node.h;
       }
-      finished = true;
-      after;
       if (after.options.tile) {
 
         // Repopulate members
@@ -6640,27 +6641,49 @@
       console.log(FDLayoutConstants.DEFAULT_EDGE_LENGTH);
 
       //trigger layoutready when each node has had its position set at least once
-      after.cy.one('layoutready', after.options.ready);
-      after.cy.trigger('layoutready');
+      if(!ready){
+        after.cy.one('layoutready', after.options.ready);
+        after.cy.trigger('layoutready');
+      }
 
       // trigger layoutstop when the layout stops (e.g. finishes)
       after.cy.one('layoutstop', after.options.stop);
       after.cy.trigger('layoutstop');
       t1.stop();
     });
-
+    
     t1.on('message', function (e) {
       var logMsg = e.message.log;
       if (logMsg != null) {
         console.log('Thread log: ' + logMsg);
         return;
       }
+      var pData = e.message.pData;
+      if (pData != null) {
+        console.log("pdata received");
+
+        after.options.eles.nodes().positions(function (i, ele) {
+          var theId = ele.data('id');
+          var pNode = pData[theId];
+//          console.log(theId + "\t" + lNode.getRect().getX() + "\t" + lNode.getRect().getY());
+
+          return {
+            x: pNode.x,
+            y: pNode.y
+          };
+        });
+
+        if(!ready){
+          ready = true;
+          after.one('layoutready', after.options.ready);
+          after.trigger({ type: 'layoutready', layout: after });
+        }
+        
+//        after.cy.one('layoutready', after.options.ready);
+//        after.cy.trigger('layoutready');
+        return;
+      }
     });
-
-//    while(!finished);
-    //Thread.sleep(3000);
-
-
 
     return this; // chaining
   };
