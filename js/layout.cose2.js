@@ -1,5 +1,5 @@
 ;
-(function ($$) {
+(function ($$) { 'use strict';
   function DimensionD(width, height) {
     this.width = 0;
     this.height = 0;
@@ -109,13 +109,6 @@
   function IGeometry() {
   }
 
-  /**
-   * This method calculates *half* the amount in x and y directions of the two
-   * input rectangles needed to separate them keeping their respective
-   * positioning, and returns the result in the input array. An input
-   * separation buffer added to the amount in both directions. We assume that
-   * the two rectangles do intersect.
-   */
   IGeometry.calcSeparationAmount = function (rectA, rectB, overlapAmount, separationBuffer)
   {
     if (!rectA.intersects(rectB)) {
@@ -128,71 +121,21 @@
     overlapAmount[1] = Math.min(rectA.getBottom(), rectB.getBottom()) -
             Math.max(rectA.y, rectB.y);
     // update the overlapping amounts for the following cases:
-
-    /* Case x.1:
-     *
-     * rectA
-     * 	|                       |
-     * 	|        _________      |
-     * 	|        |       |      |
-     * 	|________|_______|______|
-     * 			 |       |
-     *           |       |
-     *        rectB
-     */
     if ((rectA.getX() <= rectB.getX()) && (rectA.getRight() >= rectB.getRight()))
     {
       overlapAmount[0] += Math.min((rectB.getX() - rectA.getX()),
               (rectA.getRight() - rectB.getRight()));
     }
-    /* Case x.2:
-     *
-     * rectB
-     * 	|                       |
-     * 	|        _________      |
-     * 	|        |       |      |
-     * 	|________|_______|______|
-     * 			 |       |
-     *           |       |
-     *        rectA
-     */
     else if ((rectB.getX() <= rectA.getX()) && (rectB.getRight() >= rectA.getRight()))
     {
       overlapAmount[0] += Math.min((rectA.getX() - rectB.getX()),
               (rectB.getRight() - rectA.getRight()));
     }
-
-    /* Case y.1:
-     *          ________ rectA
-     *         |
-     *         |
-     *   ______|____  rectB
-     *         |    |
-     *         |    |
-     *   ______|____|
-     *         |
-     *         |
-     *         |________
-     *
-     */
     if ((rectA.getY() <= rectB.getY()) && (rectA.getBottom() >= rectB.getBottom()))
     {
       overlapAmount[1] += Math.min((rectB.getY() - rectA.getY()),
               (rectA.getBottom() - rectB.getBottom()));
     }
-    /* Case y.2:
-     *          ________ rectB
-     *         |
-     *         |
-     *   ______|____  rectA
-     *         |    |
-     *         |    |
-     *   ______|____|
-     *         |
-     *         |
-     *         |________
-     *
-     */
     else if ((rectB.getY() <= rectA.getY()) && (rectB.getBottom() >= rectA.getBottom()))
     {
       overlapAmount[1] += Math.min((rectA.getY() - rectB.getY()),
@@ -210,40 +153,22 @@
       slope = 1.0;
     }
 
-    // change y
     var moveByY = slope * overlapAmount[0];
-    // change x
     var moveByX = overlapAmount[1] / slope;
-    // now we have two pairs:
-    // 1) overlapAmount[0], moveByY
-    // 2) moveByX, overlapAmount[1]
-
-    // use pair no:1
     if (overlapAmount[0] < moveByX)
     {
       moveByX = overlapAmount[0];
     }
-    // use pair no:2
     else
     {
       moveByY = overlapAmount[1];
     }
-
     // return half the amount so that if each rectangle is moved by these
     // amounts in opposite directions, overlap will be resolved
-
     overlapAmount[0] = -1 * directions[0] * ((moveByX / 2) + separationBuffer);
     overlapAmount[1] = -1 * directions[1] * ((moveByY / 2) + separationBuffer);
   }
 
-  /**
-   * This method decides the separation direction of overlapping nodes
-   * 
-   * if directions[0] = -1, then rectA goes left
-   * if directions[0] = 1,  then rectA goes right
-   * if directions[1] = -1, then rectA goes up
-   * if directions[1] = 1,  then rectA goes down
-   */
   IGeometry.decideDirectionsForOverlappingNodes = function (rectA, rectB, directions)
   {
     if (rectA.getCenterX() < rectB.getCenterX())
@@ -265,16 +190,9 @@
     }
   }
 
-  /**
-   * This method calculates the intersection (clipping) points of the two
-   * input rectangles with line segment defined by the centers of these two
-   * rectangles. The clipping points are saved in the input double array and
-   * whether or not the two rectangles overlap is returned.
-   */
   IGeometry.getIntersection2 = function (rectA, rectB, result)
   {
     //result[0-1] will contain clipPoint of rectA, result[2-3] will contain clipPoint of rectB
-
     var p1x = rectA.getCenterX();
     var p1y = rectA.getCenterY();
     var p2x = rectB.getCenterX();
@@ -289,7 +207,6 @@
       result[3] = p2y;
       return true;
     }
-
     //variables for rectA
     var topLeftAx = rectA.getX();
     var topLeftAy = rectA.getY();
@@ -299,7 +216,6 @@
     var bottomRightAx = rectA.getRight();
     var halfWidthA = rectA.getWidthHalf();
     var halfHeightA = rectA.getHeightHalf();
-
     //variables for rectB
     var topLeftBx = rectB.getX();
     var topLeftBy = rectB.getY();
@@ -309,11 +225,9 @@
     var bottomRightBx = rectB.getRight();
     var halfWidthB = rectB.getWidthHalf();
     var halfHeightB = rectB.getHeightHalf();
-
     //flag whether clipping points are found
     var clipPointAFound = false;
     var clipPointBFound = false;
-
 
     // line is vertical
     if (p1x == p2x)
@@ -536,19 +450,10 @@
             break;
         }
       }
-
     }
-
     return false;
   }
 
-  /**
-   * This method returns in which cardinal direction does input point stays
-   * 1: North
-   * 2: East
-   * 3: South
-   * 4: West
-   */
   IGeometry.getCardinalDirection = function (slope, slopePrime, line)
   {
     if (slope > slopePrime)
@@ -561,10 +466,6 @@
     }
   }
 
-  /**
-   * This method calculates the intersection of the two lines defined by
-   * point pairs (s1,s2) and (f1,f2).
-   */
   IGeometry.getIntersection = function (s1, s2, f1, f2)
   {
     if (f2 == null) {
@@ -578,11 +479,8 @@
     var y3 = f1.y;
     var x4 = f2.x;
     var y4 = f2.y;
-
     var x, y; // intersection point
-
     var a1, a2, b1, b2, c1, c2; // coefficients of line eqns.
-
     var denom;
 
     a1 = y2 - y1;
@@ -605,261 +503,6 @@
 
     return new Point(x, y);
   }
-
-  /**
-   * This method finds and returns the angle of the vector from the + x-axis
-   * in clockwise direction (compatible w/ Java coordinate system!).
-   */
-  IGeometry.angleOfVector = function (Cx, Cy, Nx, Ny)
-  {
-    var C_angle;
-
-    if (Cx != Nx)
-    {
-      C_angle = Math.atan((Ny - Cy) / (Nx - Cx));
-
-      if (Nx < Cx)
-      {
-        C_angle += Math.PI;
-      }
-      else if (Ny < Cy)
-      {
-        C_angle += IGeometry.TWO_PI;
-      }
-    }
-    else if (Ny < Cy)
-    {
-      C_angle = IGeometry.ONE_AND_HALF_PI; // 270 degrees
-    }
-    else
-    {
-      C_angle = IGeometry.HALF_PI; // 90 degrees
-    }
-
-//		assert 0.0 <= C_angle && C_angle < TWO_PI;
-    if (0.0 > C_angle && C_angle < TWO_PI) {
-      throw "assert failed";
-    }
-
-    return C_angle;
-  }
-
-  /**
-   * This method converts the given angle in radians to degrees.
-   */
-  IGeometry.radian2degree = function (rad)
-  {
-    return 180.0 * rad / Math.PI;
-  }
-
-  /**
-   * This method checks whether the given two line segments (one with point
-   * p1 and p2, the other with point p3 and p4) intersect at a point other
-   * than these points.
-   */
-  IGeometry.doIntersect = function (p1, p2, p3, p4)
-  {
-    //linesIntersect function is ported from the Line2D class in jdk
-    var result = linesIntersect(p1.x, p1.y,
-            p2.x, p2.y, p3.x, p3.y,
-            p4.x, p4.y);
-
-    return result;
-  }
-
-  var linesIntersect = function (x1, y1, x2, y2, x3, y3, x4, y4)
-  {
-    return ((relativeCCW(x1, y1, x2, y2, x3, y3) *
-            relativeCCW(x1, y1, x2, y2, x4, y4) <= 0)
-            && (relativeCCW(x3, y3, x4, y4, x1, y1) *
-                    relativeCCW(x3, y3, x4, y4, x2, y2) <= 0));
-  }
-
-  var relativeCCW = function (x1, y1, x2, y2, px, py)
-  {
-    x2 -= x1;
-    y2 -= y1;
-    px -= x1;
-    py -= y1;
-    var ccw = px * y2 - py * x2;
-    if (ccw == 0.0) {
-      // The point is colinear, classify based on which side of
-      // the segment the point falls on.  We can calculate a
-      // relative value using the projection of px,py onto the
-      // segment - a negative value indicates the point projects
-      // outside of the segment in the direction of the particular
-      // endpoint used as the origin for the projection.
-      ccw = px * x2 + py * y2;
-      if (ccw > 0.0) {
-        // Reverse the projection to be relative to the original x2,y2
-        // x2 and y2 are simply negated.
-        // px and py need to have (x2 - x1) or (y2 - y1) subtracted
-        //    from them (based on the original values)
-        // Since we really want to get a positive answer when the
-        //    point is "beyond (x2,y2)", then we want to calculate
-        //    the inverse anyway - thus we leave x2 & y2 negated.
-        px -= x2;
-        py -= y2;
-        ccw = px * x2 + py * y2;
-        if (ccw < 0.0) {
-          ccw = 0.0;
-        }
-      }
-    }
-    return (ccw < 0.0) ? -1 : ((ccw > 0.0) ? 1 : 0);
-  }
-
-// TODO may not produce correct test results, since parameter order of
-// RectangleD constructor is changed
-  IGeometry.testClippingPoints = function ()
-  {
-    var rectA = new RectangleD(5, 6, 2, 4);
-    var rectB;
-
-    rectB = new RectangleD(0, 4, 1, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(1, 4, 1, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(1, 3, 3, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------		
-    rectB = new RectangleD(2, 3, 2, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(3, 3, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(3, 2, 4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------		
-    rectB = new RectangleD(6, 3, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------		
-    rectB = new RectangleD(9, 2, 4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(9, 3, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(8, 3, 2, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(11, 3, 3, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(11, 4, 1, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(10, 4, 1, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(10, 5, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(9, 4.5, 2, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(10, 5.8, 0.4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------		
-    rectB = new RectangleD(11, 6, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(10, 7.8, 0.4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(9, 7.5, 1, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(10, 7, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(10, 9, 2, 6);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(11, 9, 2, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(12, 8, 4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(7, 9, 2, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(8, 9, 4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(10, 9, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(6, 10, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(3, 8, 4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(3, 9, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(2, 8, 4, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(2, 8, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(1, 8, 2, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(1, 8.5, 1, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(3, 7, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(1, 7.5, 1, 4);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(3, 7.8, 0.4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(1, 6, 2, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------		
-    rectB = new RectangleD(3, 5.8, 0.4, 2);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(1, 5, 1, 3);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(1, 4, 3, 3);
-    IGeometry.findAndPrintClipPoints(rectA, rectB);
-//----------------------------------------------
-    rectB = new RectangleD(4, 4, 3, 3);
-//		findAndPrintClipPoints(rectA, rectB);
-
-    rectB = new RectangleD(5, 6, 2, 4);
-//		findAndPrintClipPoints(rectA, rectB);
-  }
-
-  IGeometry.findAndPrintClipPoints = function (rectA, rectB)
-  {
-    console.log("---------------------");
-    var clipPoints = new Array(4);
-
-    console.log("RectangleA  X: " + rectA.x + "  Y: " + rectA.y + "  Width: " + rectA.width + "  Height: " + rectA.height);
-    console.log("RectangleB  X: " + rectB.x + "  Y: " + rectB.y + "  Width: " + rectB.width + "  Height: " + rectB.height);
-    IGeometry.getIntersection(rectA, rectB, clipPoints);
-
-    console.log("Clip Point of RectA X:" + clipPoints[0] + " Y: " + clipPoints[1]);
-    console.log("Clip Point of RectB X:" + clipPoints[2] + " Y: " + clipPoints[3]);
-  }
-
-  /*
-   * Main method for testing purposes.
-   */
-//IGeometry.testClippingPoints();
 
 // -----------------------------------------------------------------------------
 // Section: Class Constants
@@ -979,9 +622,6 @@
     return new Point().constructor.name + "[x=" + this.x + ",y=" + this.y + "]";
   }
 
-  /* 
-   *This class is the javascript implementation of the Point.java class in jdk
-   */
   function PointD(x, y) {
     if (x == null && y == null) {
       this.x = 0;
@@ -1029,77 +669,8 @@
     return this;
   };
 
-  /**
-   * This class implements a generic quick sort. To use it, simply extend this
-   * class and provide a comparison method.
-   *
-   * Copyright: i-Vis Research Group, Bilkent University, 2007 - present
-   */
-
-  function QuickSort(objectArray) {
-    if (objectArray != null && Array.isArray(objectArray))
-      this.objectArray = objectArray;
-    else
-      this.objectArray = [];
-  }
-  ;
-
-//this method is to be removed
-  QuickSort.prototype.compare = function (a, b) {
-    return a > b;
-  }
-
-  QuickSort.prototype.getObjectAt = function (i)
-  {
-    return this.objectArray[i];
-  };
-
-  QuickSort.prototype.setObjectAt = function (i, o)
-  {
-    this.objectArray[i] = o;
-  };
-
-  QuickSort.prototype.quicksort = function (lo, hi)
-  {
-    if (lo == null || hi == null) {
-      var endIndex = this.objectArray.length - 1;
-      if (endIndex >= 0)
-        this.quicksort(0, endIndex);
-    } else {
-      var i = lo;
-      var j = hi;
-      var temp;
-      var middleIndex = Math.floor((lo + hi) / 2);
-      var middle = this.getObjectAt(middleIndex);
-
-      do
-      {
-        while (this.compare(this.getObjectAt(i), middle))
-          i++;
-        while (this.compare(middle, this.getObjectAt(j)))
-          j--;
-
-        if (i <= j)
-        {
-          temp = this.getObjectAt(i);
-          this.setObjectAt(i, this.getObjectAt(j));
-          this.setObjectAt(j, temp);
-          i++;
-          j--;
-        }
-      } while (i <= j);
-
-      //  recursion
-      if (lo < j)
-        this.quicksort(lo, j);
-      if (i < hi)
-        this.quicksort(i, hi);
-    }
-  };
-
   function RandomSeed() {
   }
-
   RandomSeed.seed = 1;
   RandomSeed.x = 0;
 
@@ -1109,9 +680,6 @@
   };
 
   function RectangleD(x, y, width, height) {
-    /**
-     * Geometry of rectangle
-     */
     this.x = 0;
     this.y = 0;
     this.width = 0;
@@ -1125,9 +693,6 @@
     }
   }
 
-// -----------------------------------------------------------------------------
-// Section: Accessors
-// -----------------------------------------------------------------------------
   RectangleD.prototype.getX = function ()
   {
     return this.x;
@@ -1168,10 +733,6 @@
     this.height = height;
   };
 
-
-// -----------------------------------------------------------------------------
-// Section: Remaining methods
-// -----------------------------------------------------------------------------
   RectangleD.prototype.getRight = function ()
   {
     return this.x + this.width;
@@ -1247,32 +808,6 @@
     return this.height / 2;
   };
 
-  /**
-   * This class is for transforming certain world coordinates to device ones.
-   *  
-   * Following example transformation translates (shifts) world coordinates by
-   * (10,20), scales objects in the world to be twice as tall but half as wide
-   * in device coordinates. In addition it flips the y coordinates.
-   * 
-   *			(wox,woy): world origin (x,y)
-   *			(wex,wey): world extension x and y
-   *			(dox,doy): device origin (x,y)
-   *			(dex,dey): device extension x and y
-   *
-   *										(dox,doy)=(10,20)
-   *											*--------- dex=50
-   *											|
-   *			 wey=50							|
-   *				|							|
-   *				|							|
-   *				|							|
-   *				*------------- wex=100		|
-   *			(wox,woy)=(0,0)					dey=-100
-   *
-   * In most cases, we will set all values to 1.0 except dey=-1.0 to flip the y
-   * axis.
-   */
-
   function Transform(x, y) {
     this.lworldOrgX = 0.0;
     this.lworldOrgY = 0.0;
@@ -1283,12 +818,6 @@
     this.ldeviceExtX = 1.0;
     this.ldeviceExtY = 1.0;
   }
-
-// ---------------------------------------------------------------------
-// Section: Get/set methods for instance variables.
-// ---------------------------------------------------------------------
-
-  /* World related */
 
   Transform.prototype.getWorldOrgX = function ()
   {
@@ -1372,14 +901,6 @@
     this.ldeviceExtY = dey;
   }
 
-// ---------------------------------------------------------------------
-// Section: x or y coordinate transformation
-// ---------------------------------------------------------------------
-
-  /**
-   * This method transforms an x position in world coordinates to an x
-   * position in device coordinates.
-   */
   Transform.prototype.transformX = function (x)
   {
     var xDevice = 0.0;
@@ -1393,10 +914,6 @@
     return xDevice;
   }
 
-  /**
-   * This method transforms a y position in world coordinates to a y
-   * position in device coordinates.
-   */
   Transform.prototype.transformY = function (y)
   {
     var yDevice = 0.0;
@@ -1411,10 +928,6 @@
     return yDevice;
   }
 
-  /**
-   * This method transforms an x position in device coordinates to an x
-   * position in world coordinates.
-   */
   Transform.prototype.inverseTransformX = function (x)
   {
     var xWorld = 0.0;
@@ -1429,10 +942,6 @@
     return xWorld;
   }
 
-  /**
-   * This method transforms a y position in device coordinates to a y
-   * position in world coordinates.
-   */
   Transform.prototype.inverseTransformY = function (y)
   {
     var yWorld = 0.0;
@@ -1442,128 +951,15 @@
       yWorld = this.lworldOrgY +
               ((y - this.ldeviceOrgY) * this.lworldExtY / deviceExtY);
     }
-
-
     return yWorld;
   }
 
-// ---------------------------------------------------------------------
-// Section: point, dimension and rectagle transformation
-// ---------------------------------------------------------------------
-
-  /**
-   * This method transforms the input point from the world coordinate system
-   * to the device coordinate system.
-   */
-  Transform.prototype.transformPoint = function (inPoint)
-  {
-    var outPoint =
-            new PointD(this.transformX(inPoint.x),
-                    this.transformY(inPoint.y));
-    return outPoint;
-  }
-
-  /**
-   * This method transforms the input dimension from the world coordinate 
-   * system to the device coordinate system.
-   */
-  Transform.prototype.transformDimension = function (inDimension)
-  {
-    var outDimension =
-            new DimensionD(
-                    this.transformX(inDimension.width) -
-                    this.transformX(0.0),
-                    this.transformY(inDimension.height) -
-                    this.transformY(0.0));
-    return outDimension;
-  }
-
-  /**
-   * This method transforms the input rectangle from the world coordinate
-   * system to the device coordinate system.
-   */
-  Transform.prototype.transformRect = function (inRect)
-  {
-    var outRect = new RectangleD();
-    var inRectDim = new DimensionD(inRect.width, inRect.height);
-    var outRectDim = this.transformDimension(inRectDim);
-    outRect.setWidth(outRectDim.width);
-    outRect.setHeight(outRectDim.height);
-    outRect.setX(this.transformX(inRect.x));
-    outRect.setY(this.transformY(inRect.y));
-    return outRect;
-  }
-
-  /**
-   * This method transforms the input point from the device coordinate system
-   * to the world coordinate system.
-   */
   Transform.prototype.inverseTransformPoint = function (inPoint)
   {
     var outPoint =
             new PointD(this.inverseTransformX(inPoint.x),
                     this.inverseTransformY(inPoint.y));
     return outPoint;
-  }
-
-  /** 
-   * This method transforms the input dimension from the device coordinate 
-   * system to the world coordinate system.
-   */
-  Transform.prototype.inverseTransformDimension = function (inDimension)
-  {
-    var outDimension =
-            new DimensionD(
-                    this.inverseTransformX(inDimension.width - this.inverseTransformX(0.0)),
-                    this.inverseTransformY(inDimension.height - this.inverseTransformY(0.0)));
-    return outDimension;
-  }
-
-  /**
-   * This method transforms the input rectangle from the device coordinate
-   * system to the world coordinate system. The result is in the passed 
-   * output rectangle object.
-   */
-  Transform.prototype.inverseTransformRect = function (inRect)
-  {
-    var outRect = new RectangleD();
-    var inRectDim = new DimensionD(inRect.width, inRect.height);
-    var outRectDim = this.inverseTransformDimension(inRectDim);
-    outRect.setWidth(outRectDim.width);
-    outRect.setHeight(outRectDim.height);
-    outRect.setX(this.inverseTransformX(inRect.x));
-    outRect.setY(this.inverseTransformY(inRect.y));
-    return outRect;
-  }
-
-// ---------------------------------------------------------------------
-// Section: Remaining methods.
-// ---------------------------------------------------------------------
-
-  /**
-   * This method adjusts the world extensions of this transform object
-   * such that transformations based on this transform object will 
-   * preserve the aspect ratio of objects as much as possible.
-   */
-  Transform.prototype.adjustExtToPreserveAspectRatio = function ()
-  {
-    var deviceExtX = this.ldeviceExtX;
-    var deviceExtY = this.ldeviceExtY;
-
-    if (deviceExtY != 0.0 && deviceExtX != 0.0)
-    {
-      var worldExtX = this.lworldExtX;
-      var worldExtY = this.lworldExtY;
-
-      if (deviceExtY * worldExtX < deviceExtX * worldExtY)
-      {
-        this.setWorldExtX((deviceExtY > 0.0) ? deviceExtX * worldExtY / deviceExtY : 0.0);
-      }
-      else
-      {
-        this.setWorldExtY((deviceExtX > 0.0) ? deviceExtY * worldExtX / deviceExtX : 0.0);
-      }
-    }
   }
 
   function UniqueIDGeneretor() {
@@ -1594,61 +990,12 @@
     return arg == null || (type != "object" && type != "function");
   }
 
-  /**
-   * This class represents an edge (l-level) for layout purposes.
-   */
-
   function LEdge(source, target, vEdge) {
     LGraphObject.call(this, vEdge);
-//  -----------------------------------------------------------------------------
-// Section: Instance variables
-// -----------------------------------------------------------------------------
-    /*
-     * Source and target nodes of this edge
-     */
-    this.source = null;
-    this.target = null;
 
-    /*
-     * Whether this edge is an intergraph one
-     */
-    this.isInterGraph;
-
-    /*
-     * The length of this edge ( l = sqrt(x^2 + y^2) )
-     */
-    this.length;
-    this.lengthX;
-    this.lengthY;
-
-    /*
-     * Whether source and target node rectangles intersect, requiring special
-     * treatment
-     */
     this.isOverlapingSourceAndTarget = false;
-
-    /*
-     * Bend points for this edge
-     */
-    this.bendpoints;
-
-    /*
-     * Lowest common ancestor graph (lca), and source and target nodes in lca
-     */
-    this.lca;
-    this.sourceInLca;
-    this.targetInLca;
-
-    this.vGraphObject;
-
-    /*
-     * Constructor
-     */
-    // in java: super(vEdge);
     this.vGraphObject = vEdge;
-
     this.bendpoints = [];
-
     this.source = source;
     this.target = target;
   }
@@ -1659,110 +1006,34 @@
     LEdge[prop] = LGraphObject[prop];
   }
 
-// -----------------------------------------------------------------------------
-// Section: Accessors
-// -----------------------------------------------------------------------------
-  /**
-   * This method returns the source node of this edge.
-   */
   LEdge.prototype.getSource = function ()
   {
     return this.source;
   };
 
-  /**
-   * This method sets the source node of this edge.
-   */
-  LEdge.prototype.setSource = function (source)
-  {
-    this.source = source;
-  };
-
-  /**
-   * This method returns the target node of this edge.
-   */
   LEdge.prototype.getTarget = function ()
   {
     return this.target;
   };
 
-  /**
-   * This method sets the target node of this edge.
-   */
-  LEdge.prototype.setTarget = function (target)
-  {
-    this.target = target;
-  };
-
-  /**
-   * This method returns whether or not this edge is an inter-graph edge.
-   */
   LEdge.prototype.isInterGraph = function ()
   {
     return this.isInterGraph;
   };
 
-  /**
-   * This method returns the length of this edge. Note that this value might
-   * be out-dated at times during a layout operation.
-   */
   LEdge.prototype.getLength = function ()
   {
     return this.length;
   };
 
-  /**
-   * This method returns the x component of the length of this edge. Note that
-   * this value might be out-dated at times during a layout operation.
-   */
-  LEdge.prototype.getLengthX = function ()
-  {
-    return this.lengthX;
-  };
-
-  /**
-   * This method returns the y component of the length of this edge. Note that
-   * this value might be out-dated at times during a layout operation.
-   */
-  LEdge.prototype.getLengthY = function ()
-  {
-    return this.lengthY;
-  };
-
-  /**
-   * This method returns whether or not this edge has overlapping source and
-   * target.
-   */
   LEdge.prototype.isOverlapingSourceAndTarget = function ()
   {
     return this.isOverlapingSourceAndTarget;
   };
 
-  /**
-   * This method resets the overlapping source and target status of this edge.
-   */
-  LEdge.prototype.resetOverlapingSourceAndTarget = function ()
-  {
-    this.isOverlapingSourceAndTarget = false;
-  };
-
-  /**
-   * This method returns the list of bend points of this edge.
-   */
   LEdge.prototype.getBendpoints = function ()
   {
     return this.bendpoints;
-  };
-
-  /**
-   * This method clears all existing bendpoints and sets given bendpoints as 
-   * the new ones.
-   */
-  LEdge.prototype.reRoute = function (bendPoints)
-  {
-    this.bendpoints = [];
-
-    this.bendpoints = this.bendpoints.concat(bendPoints);
   };
 
   LEdge.prototype.getLca = function ()
@@ -1780,12 +1051,6 @@
     return this.targetInLca;
   };
 
-// -----------------------------------------------------------------------------
-// Section: Remaining methods
-// -----------------------------------------------------------------------------
-  /**
-   * This method returns the end of this edge different from the input one.
-   */
   LEdge.prototype.getOtherEnd = function (node)
   {
     if (this.source === node)
@@ -1802,11 +1067,6 @@
     }
   }
 
-  /**
-   * This method finds the other end of this edge, and returns its ancestor
-   * node, possibly the other end node itself, that is in the input graph. It
-   * returns null if none of its ancestors is in the input graph.
-   */
   LEdge.prototype.getOtherEndInGraph = function (node, graph)
   {
     var otherEnd = this.getOtherEnd(node);
@@ -1830,10 +1090,6 @@
     return null;
   };
 
-  /**
-   * This method updates the length of this edge as well as whether or not the
-   * rectangles representing the geometry of its end nodes overlap.
-   */
   LEdge.prototype.updateLength = function ()
   {
     var clipPointCoordinates = new Array(4);
@@ -1845,8 +1101,6 @@
 
     if (!this.isOverlapingSourceAndTarget)
     {
-      // target clip point minus source clip point gives us length
-
       this.lengthX = clipPointCoordinates[0] - clipPointCoordinates[2];
       this.lengthY = clipPointCoordinates[1] - clipPointCoordinates[3];
 
@@ -1865,14 +1119,8 @@
     }
   };
 
-  /**
-   * This method updates the length of this edge using the end nodes centers
-   * as opposed to clipping points to simplify calculations involved.
-   */
   LEdge.prototype.updateLengthSimple = function ()
   {
-    // target center minus source center gives us length
-
     this.lengthX = this.target.getCenterX() - this.source.getCenterX();
     this.lengthY = this.target.getCenterY() - this.source.getCenterY();
 
@@ -1890,70 +1138,10 @@
             this.lengthX * this.lengthX + this.lengthY * this.lengthY);
   }
 
-// -----------------------------------------------------------------------------
-// Section: Testing methods
-// -----------------------------------------------------------------------------
-  /**
-   * This method prints the topology of this edge.
-   */
-  LEdge.prototype.printTopology = function ()
-  {
-//  console.log( (this.label == null ? "?" : this.label) + "[" +
-//    (this.source.label == null ? "?" : this.source.label) + "-" +
-//    (this.target.label == null ? "?" : this.target.label) + "] ");
-  }
-
   function LGraph(parent, obj2, vGraph) {
     LGraphObject.call(this, vGraph);
-    /*
-     * Nodes maintained by this graph
-     */
-    this.nodes;
-
-    /*
-     * Edges whose source and target nodes are in this graph
-     */
-    this.edges;
-
-    /*
-     * Owner graph manager
-     */
-    this.graphManager;
-
-    /*
-     * Parent node of this graph. This should never be null (the parent of the
-     * root graph is the root node) when this graph is part of a compound
-     * structure (i.e. a graph manager).
-     */
-    this.parent;
-
-    /*
-     * Geometry of this graph (i.e. that of its tightest bounding rectangle,
-     * also taking margins into account)
-     */
-    this.top;
-    this.left;
-    this.bottom;
-    this.right;
-
-    /*
-     * Estimated size of this graph based on estimated sizes of its contents
-     */
     this.estimatedSize = Integer.MIN_VALUE;
-
-    /*
-     * Margins of this graph to be applied on bouding rectangle of its contents
-     */
     this.margin = LayoutConstants.DEFAULT_GRAPH_MARGIN;
-
-    /*
-     * Whether the graph is connected or not, taking indirect edges (e.g. an
-     * edge connecting a child node of a node of this graph to another node of
-     * this graph) into account.
-     */
-    this.isConnected;
-
-
     this.edges = [];
     this.nodes = [];
     this.isConnected = false;
@@ -1967,132 +1155,70 @@
     }
   }
 
-//extends LGraphObject
   LGraph.prototype = Object.create(LGraphObject.prototype);
   for (var prop in LGraphObject) {
     LGraph[prop] = LGraphObject[prop];
   }
 
-  /**
-   * This method returns the list of nodes in this graph.
-   */
   LGraph.prototype.getNodes = function () {
     return this.nodes;
   };
 
-  /**
-   * This method returns the list of edges in this graph.
-   */
   LGraph.prototype.getEdges = function () {
     return this.edges;
   };
 
-  /**
-   * This method returns the graph manager of this graph.
-   */
   LGraph.prototype.getGraphManager = function ()
   {
     return this.graphManager;
   };
 
-  /**
-   * This method returns the parent node of this graph. If this graph is the
-   * root of the nesting hierarchy, then null is returned.
-   */
   LGraph.prototype.getParent = function ()
   {
     return this.parent;
   };
 
-  /**
-   * This method returns the left of the bounds of this graph. Notice that
-   * bounds are not always up-to-date.
-   */
   LGraph.prototype.getLeft = function ()
   {
     return this.left;
   };
 
-  /**
-   * This method returns the right of the bounds of this graph. Notice that
-   * bounds are not always up-to-date.
-   */
   LGraph.prototype.getRight = function ()
   {
     return this.right;
   };
 
-  /**
-   * This method returns the top of the bounds of this graph. Notice that
-   * bounds are not always up-to-date.
-   */
   LGraph.prototype.getTop = function ()
   {
     return this.top;
   };
 
-  /**
-   * This method returns the bottom of the bounds of this graph. Notice that
-   * bounds are not always up-to-date.
-   */
   LGraph.prototype.getBottom = function ()
   {
     return this.bottom;
   };
 
-  /**
-   * This method returns the bigger of the two dimensions of this graph.
-   */
-  LGraph.prototype.getBiggerDimension = function ()
-  {
-    if (!(this.right - this.left >= 0) && (this.bottom - this.top >= 0)) {
-      throw "assert failed";
-    }
-    return Math.max(this.right - this.left, this.bottom - this.top);
-  };
-
-  /**
-   * This method returns whether this graph is connected or not.
-   */
   LGraph.prototype.isConnected = function ()
   {
     return this.isConnected;
   };
 
-  /**
-   * This method returns the margins of this graph to be applied on the
-   * bounding rectangle of its contents.
-   */
-  LGraph.prototype.getMargin = function ()
-  {
-    return this.margin;
-  };
-
-  /**
-   * This method sets the margins of this graphs to be applied on the
-   * bounding rectangle of its contents.
-   */
-  LGraph.prototype.setMargin = function (margin)
-  {
-    this.margin = margin;
-  };
-
   LGraph.prototype.add = function (obj1, sourceNode, targetNode) {
     if (sourceNode == null && targetNode == null) {
-      newNode = obj1;
+      var newNode = obj1;
       if (this.graphManager == null) {
         throw "Graph has no graph mgr!";
       }
       if (this.getNodes().indexOf(newNode) > -1) {
         throw "Node already in graph!";
       }
-      newNode.setOwner(this);
+      newNode.owner = this;
       this.getNodes().push(newNode);
 
       return newNode;
     }
     else {
-      newEdge = obj1;
+      var newEdge = obj1;
       if (!(this.getNodes().indexOf(sourceNode) > -1 && (this.getNodes().indexOf(targetNode)) > -1)) {
         throw "Source or target not in graph!";
       }
@@ -2140,10 +1266,8 @@
       if (this.graphManager == null) {
         throw "Owner graph manager is invalid!";
       }
-
       // remove incident edges first (make a copy to do it safely)
       var edgesToBeRemoved = node.edges.slice();
-
       var edge;
       var s = edgesToBeRemoved.length;
       for (var i = 0; i < s; i++)
@@ -2181,8 +1305,6 @@
         throw "Source and/or target owner is invalid!";
       }
 
-      // remove edge from source and target nodes' incidency lists
-
       var sourceIndex = edge.source.edges.indexOf(edge);
       var targetIndex = edge.target.edges.indexOf(edge);
       if (!(sourceIndex > -1 && targetIndex > -1)) {
@@ -2196,8 +1318,6 @@
         edge.target.edges.splice(targetIndex, 1);
       }
 
-      // remove edge from owner graph's edge list
-
       var index = edge.source.owner.getEdges().indexOf(edge);
       if (index == -1) {
         throw "Not in owner's edge list!";
@@ -2207,10 +1327,6 @@
     }
   };
 
-  /**
-   * This method calculates, updates and returns the left-top point of this
-   * graph including margins.
-   */
   LGraph.prototype.updateLeftTop = function ()
   {
     var top = Integer.MAX_VALUE;
@@ -2251,12 +1367,6 @@
     return new Point(this.left, this.top);
   };
 
-  /**
-   * This method calculates and updates the bounds of this graph including
-   * margins in a recursive manner, so that
-   * all compound nodes in this and lower levels will have up-to-date boundaries.
-   * Recursiveness of the function is controlled by the parameter named "recursive".
-   */
   LGraph.prototype.updateBounds = function (recursive)
   {
     // calculate bounds
@@ -2275,7 +1385,6 @@
     {
       var lNode = nodes[i];
 
-      // if it is a recursive call, and current node is compound
       if (recursive && lNode.child != null)
       {
         lNode.updateBounds();
@@ -2306,10 +1415,7 @@
       }
     }
 
-//  var boundingRect = new Rectangle(left, top, right - left, bottom - top);
     var boundingRect = new RectangleD(left, top, right - left, bottom - top);
-
-    // Do we have any nodes in this graph?
     if (left == Integer.MAX_VALUE)
     {
       this.left = Math.floor(this.parent.getLeft());
@@ -2321,15 +1427,9 @@
     this.left = boundingRect.x - this.margin;
     this.right = boundingRect.x + boundingRect.width + this.margin;
     this.top = boundingRect.y - this.margin;
-    // Label text dimensions are to be added for the bottom of the compound!
     this.bottom = boundingRect.y + boundingRect.height + this.margin;
   };
 
-  /**
-   * This method returns the bounding rectangle of the given list of nodes. No
-   * margins are accounted for, and it returns a rectangle with top-left set
-   * to Integer.MAX_VALUE if the list is empty.
-   */
   LGraph.calculateBounds = function (nodes)
   {
     var left = Integer.MAX_VALUE;
@@ -2341,7 +1441,6 @@
     var nodeTop;
     var nodeBottom;
 
-    //Iterator<LNode> itr = nodes.iterator();
     var s = nodes.length;
 
     for (var i = 0; i < s; i++)
@@ -2378,10 +1477,6 @@
     return boundingRect;
   };
 
-  /**
-   * This method returns the depth of the parent node of this graph, if any,
-   * in the inclusion tree (nesting hierarchy).
-   */
   LGraph.prototype.getInclusionTreeDepth = function ()
   {
     if (this == this.graphManager.getRoot())
@@ -2394,9 +1489,6 @@
     }
   };
 
-  /**
-   * This method returns estimated size of this graph.
-   */
   LGraph.prototype.getEstimatedSize = function ()
   {
     if (this.estimatedSize == Integer.MIN_VALUE) {
@@ -2405,27 +1497,9 @@
     return this.estimatedSize;
   };
 
-  /**
-   * This method sets the estimated size of this graph. We use this method to
-   * directly set this size in certain exceptional cases rather than
-   * calculating it from scratch (see calcEstimatedSize method).
-   */
-  LGraph.prototype.setEstimatedSize = function (size)
-  {
-    this.estimatedSize = size;
-  };
-
-  /*
-   * This method calculates and returns the estimated size of this graph as
-   * well as the estimated sizes of the nodes in this graph recursively. The
-   * estimated size of a graph is based on the estimated sizes of its nodes.
-   * In fact, this value is the exact average dimension for non-compound nodes
-   * and it is a rather rough estimation on the dimension for compound nodes.
-   */
   LGraph.prototype.calcEstimatedSize = function ()
   {
     var size = 0;
-//  Iterator itr = this.nodes.iterator();
     var nodes = this.nodes;
     var s = nodes.length;
 
@@ -2447,11 +1521,6 @@
     return Math.floor(this.estimatedSize);
   };
 
-  /**
-   * This method updates whether this graph is connected or not, taking
-   * indirect edges (e.g. an edge connecting a child node of a node of this
-   * graph to another node of this graph) into account.
-   */
   LGraph.prototype.updateConnected = function ()
   {
     if (this.nodes.length == 0)
@@ -2465,7 +1534,6 @@
     var currentNode = this.nodes[0];
     var neighborEdges;
     var currentNeighbor;
-
     toBeVisited = toBeVisited.concat(currentNode.withChildren());
 
     while (toBeVisited.length > 0)
@@ -2514,109 +1582,13 @@
     }
   };
 
-  /**
-   * This method reverses the given edge by swapping the source and target
-   * nodes of the edge.
-   * 
-   * @param edge	edge to be reversed
-   */
-  LGraph.prototype.reverse = function (edge)
-  {
-    var index = edge.source.getOwner().getEdges().indexOf(edge);
-    edge.source.getOwner().getEdges().splice(index, 1);
-    edge.target.getOwner().getEdges().push(edge);
-
-    var swap = edge.source;
-    edge.source = edge.target;
-    edge.target = swap;
-  };
-
-  /**
-   * This method prints the topology of this graph.
-   */
-  LGraph.prototype.printTopology = function ()
-  {
-//  var str = "?";
-//  if(this.label != null){
-//    str = this.label;
-//  }
-//  console.log(str + ": ");
-//  console.log("Nodes: ");
-    var node;
-    var nodes = this.nodes;
-    var s = nodes.length;
-    for (var i = 0; i < s; i++)
-    {
-      node = nodes[i];
-      node.printTopology();
-    }
-  };
-
-  /* 
-   * To change this license header, choose License Headers in Project Properties.
-   * To change this template file, choose Tools | Templates
-   * and open the template in the editor.
-   */
-
   function LGraphManager(layout) {
-    /*
-     * Graphs maintained by this graph manager, including the root of the
-     * nesting hierarchy
-     */
-    this.graphs = null;
-
-    /*
-     * Inter-graph edges in this graph manager. Notice that all inter-graph
-     * edges go here, not in any of the edge lists of individual graphs (either
-     * source or target node's owner graph).
-     */
-    this.edges = null;
-
-    /*
-     * All nodes (excluding the root node) and edges (including inter-graph
-     * edges) in this graph manager. For efficiency purposes we hold references
-     * of all layout objects that we operate on in arrays. These lists are
-     * generated once we know that the topology of the graph manager is fixed,
-     * immediately before layout starts.
-     */
-    this.allNodes = null;
-    this.allEdges = null;
-
-    /*
-     * Similarly we have a list of nodes for which gravitation should be
-     * applied. This is determined once, prior to layout, and used afterwards.
-     */
-    this.allNodesToApplyGravitation = null;
-
-    /*
-     * The root of the inclusion/nesting hierarchy of this compound structure
-     */
-    this.rootGraph = null;
-
-    /*
-     * Layout object using this graph manager
-     */
     this.layout = layout;
-
-    /*
-     * Cluster Manager of all graphs managed by this graph manager
-     */
-//  this.clusterManager = null;
-
 
     this.graphs = [];
     this.edges = [];
-    this.allNodes = null;
-    this.allEdges = null;
-    this.allNodesToApplyGravitation = null;
-    this.rootGraph = null;
-//  this.clusterManager = new ClusterManager();
   }
 
-  /**
-   * This method adds a new graph to this graph manager and sets as the root.
-   * It also creates the root graph as the parent of the root graph.
-   */
   LGraphManager.prototype.addRoot = function ()
   {
     var ngraph = this.layout.newGraph();
@@ -2707,10 +1679,6 @@
   };
 
   LGraphManager.prototype.remove = function (lObj) {
-    /**
-     * If the lObj is an LGraph instance then, this method removes the input graph 
-     * from this graph manager. 
-     */
     if (lObj instanceof LGraph) {
       var graph = lObj;
       if (graph.getGraphManager() != this) {
@@ -2759,10 +1727,6 @@
       // also reset the parent of the graph
       graph.parent = null;
     }
-    /**
-     * If the lObj is an LEdge instance then, this method removes the input inter-graph 
-     * edge from this graph manager.
-     */
     else if (lObj instanceof LEdge) {
       edge = lObj;
       if (edge == null) {
@@ -2800,104 +1764,52 @@
     }
   };
 
-  /**
-   * This method calculates and updates the bounds of the root graph.
-   */
   LGraphManager.prototype.updateBounds = function ()
   {
     this.rootGraph.updateBounds(true);
   };
 
-  /**
-   * This method returns the cluster manager of all graphs managed by this
-   * graph manager.
-   */
-//LGraphManager.prototype.getClusterManager = function ()
-//{
-//  return this.clusterManager;
-//};
-
-  /**
-   * This method retuns the list of all graphs managed by this graph manager.
-   */
   LGraphManager.prototype.getGraphs = function ()
   {
     return this.graphs;
   };
 
-  /**
-   * This method returns the list of all inter-graph edges in this graph
-   * manager.
-   */
-  LGraphManager.prototype.getInterGraphEdges = function ()
-  {
-    return this.edges;
-  };
-
-  /**
-   * This method returns the list of all nodes in this graph manager. This
-   * list is populated on demand and should only be called once the topology
-   * of this graph manager has been formed and known to be fixed.
-   */
   LGraphManager.prototype.getAllNodes = function ()
   {
     if (this.allNodes == null)
     {
       var nodeList = [];
-
       var graphs = this.getGraphs();
       var s = graphs.length;
       for (var i = 0; i < s; i++)
       {
         nodeList = nodeList.concat(graphs[i].getNodes());
       }
-
       this.allNodes = nodeList;
     }
-
     return this.allNodes;
   };
 
-  /**
-   * This method nulls the all nodes array so that it gets re-calculated with
-   * the next invocation of the accessor. Needed when topology changes.
-   */
   LGraphManager.prototype.resetAllNodes = function ()
   {
     this.allNodes = null;
   };
 
-  /**
-   * This method nulls the all edges array so that it gets re-calculated with
-   * the next invocation of the accessor. Needed when topology changes. 
-   */
   LGraphManager.prototype.resetAllEdges = function ()
   {
     this.allEdges = null;
   };
 
-  /**
-   * This method nulls the all nodes to apply gravition array so that it gets 
-   * re-calculated with the next invocation of the accessor. Needed when
-   * topology changes. 
-   */
   LGraphManager.prototype.resetAllNodesToApplyGravitation = function ()
   {
     this.allNodesToApplyGravitation = null;
   };
 
-  /**
-   * This method returns the list of all edges (including inter-graph edges)
-   * in this graph manager. This list is populated on demand and should only
-   * be called once the topology of this graph manager has been formed and
-   * known to be fixed.
-   */
   LGraphManager.prototype.getAllEdges = function ()
   {
     if (this.allEdges == null)
     {
       var edgeList = [];
-
       var graphs = this.getGraphs();
       var s = graphs.length;
       for (var i = 0; i < graphs.length; i++)
@@ -2909,23 +1821,14 @@
 
       this.allEdges = edgeList;
     }
-
     return this.allEdges;
   };
 
-  /**
-   * This method returns the array of all nodes to which gravitation should be
-   * applied.
-   */
   LGraphManager.prototype.getAllNodesToApplyGravitation = function ()
   {
     return this.allNodesToApplyGravitation;
   };
 
-  /**
-   * This method sets the array of all nodes to which gravitation should be
-   * applied from the input list.
-   */
   LGraphManager.prototype.setAllNodesToApplyGravitation = function (nodeList)
   {
     if (this.allNodesToApplyGravitation != null) {
@@ -2935,20 +1838,11 @@
     this.allNodesToApplyGravitation = nodeList;
   };
 
-  /**
-   * This method returns the root graph (root of the nesting hierarchy) of
-   * this graph manager. Nesting relations must form a tree.
-   */
   LGraphManager.prototype.getRoot = function ()
   {
     return this.rootGraph;
   };
 
-  /**
-   * This method sets the root graph (root of the nesting hierarchy) of this
-   * graph manager. Nesting relations must form a tree.
-   * @param graph
-   */
   LGraphManager.prototype.setRootGraph = function (graph)
   {
     if (graph.getGraphManager() != this) {
@@ -2956,7 +1850,6 @@
     }
 
     this.rootGraph = graph;
-
     // root graph must have a root node associated with it for convenience
     if (graph.parent == null)
     {
@@ -2964,29 +1857,11 @@
     }
   };
 
-  /**
-   * This method returns the associated layout object, which operates on this
-   * graph manager.
-   */
   LGraphManager.prototype.getLayout = function ()
   {
     return this.layout;
   };
 
-  /**
-   * This method sets the associated layout object, which operates on this
-   * graph manager.
-   */
-  LGraphManager.prototype.setLayout = function (layout)
-  {
-    this.layout = layout;
-  };
-
-  /**
-   * This method checks whether one of the input nodes is an ancestor of the
-   * other one (and vice versa) in the nesting tree. Such pairs of nodes
-   * should not be allowed to be joined by edges.
-   */
   LGraphManager.prototype.isOneAncestorOfOther = function (firstNode, secondNode)
   {
     if (!(firstNode != null && secondNode != null)) {
@@ -2997,9 +1872,7 @@
     {
       return true;
     }
-
     // Is second node an ancestor of the first one?
-
     var ownerGraph = firstNode.getOwner();
     var parentNode;
 
@@ -3023,9 +1896,7 @@
         break;
       }
     } while (true);
-
     // Is first node an ancestor of the second one?
-
     ownerGraph = secondNode.getOwner();
 
     do
@@ -3052,9 +1923,6 @@
     return false;
   };
 
-  /**
-   * This method calculates the lowest common ancestor of each edge.
-   */
   LGraphManager.prototype.calcLowestCommonAncestors = function ()
   {
     var edge;
@@ -3125,20 +1993,12 @@
     }
   };
 
-  /**
-   * This method finds the lowest common ancestor of given two nodes.
-   * 
-   * @param firstNode
-   * @param secondNode
-   * @return lowest common ancestor
-   */
   LGraphManager.prototype.calcLowestCommonAncestor = function (firstNode, secondNode)
   {
     if (firstNode == secondNode)
     {
       return firstNode.getOwner();
     }
-
     var firstOwnerGraph = firstNode.getOwner();
 
     do
@@ -3147,7 +2007,6 @@
       {
         break;
       }
-
       var secondOwnerGraph = secondNode.getOwner();
 
       do
@@ -3161,7 +2020,6 @@
         {
           return secondOwnerGraph;
         }
-
         secondOwnerGraph = secondOwnerGraph.getParent().getOwner();
       } while (true);
 
@@ -3171,9 +2029,6 @@
     return firstOwnerGraph;
   };
 
-  /*
-   * Auxiliary method for calculating depths of nodes in the inclusion tree.
-   */
   LGraphManager.prototype.calcInclusionTreeDepths = function (graph, depth) {
     if (graph == null && depth == null) {
       graph = this.rootGraph;
@@ -3186,7 +2041,6 @@
     for (var i = 0; i < s; i++)
     {
       node = nodes[i];
-
       node.inclusionTreeDepth = depth;
 
       if (node.child != null)
@@ -3213,49 +2067,9 @@
     return false;
   };
 
-  /**
-   * This method prints the topology of this graph manager.
-   */
-  LGraphManager.prototype.printTopology = function ()
-  {
-    this.rootGraph.printTopology();
-
-    var graph;
-    var s = this.graphs.length;
-
-    for (var i = 0; i < s; i++)
-    {
-      graph = this.graphs[i];
-
-      if (graph != this.rootGraph)
-      {
-        graph.printTopology();
-      }
-    }
-  };
-
   function LGraphObject(vGraphObject) {
-    /**
-     * Associated view object
-     */
-    this.vGraphObject = null;
-
-    /**
-     * Label
-     */
-    this.label = null;
-
     this.vGraphObject = vGraphObject;
   }
-
-  /**
-   * This class represents a node (l-level) for layout purposes. A node maintains
-   * a list of its incident edges, which includes inter-graph edges. Every node
-   * has an owner graph, except for the root node, which resides at the top of the
-   * nesting hierarchy along with its child graph (the root graph).
-   * gm, loc, size, vNode
-   * gm, vNode, loc, size
-   */
 
   function LNode(gm, loc, size, vNode) {
     //Alternative constructor 1 : LNode(LGraphManager gm, Point loc, Dimension size, Object vNode)
@@ -3269,60 +2083,10 @@
     if (gm.graphManager != null)
       gm = gm.graphManager;
 
-    // -----------------------------------------------------------------------------
-    // Section: Instance variables
-    // -----------------------------------------------------------------------------
-    /*
-     * Owner graph manager of this node
-     */
-    this.graphManager = null;
-
-    /**
-     * Possibly null child graph of this node
-     */
-    this.child;
-
-    /*
-     * Owner graph of this node; cannot be null
-     */
-    this.owner;
-
-    /*
-     * List of edges incident with this node
-     */
-    this.edges;
-
-    /*
-     * Geometry of this node
-     */
-    this.rect;
-
-    /*
-     * List of clusters, this node belongs to.
-     */
-//  this.clusters;
-
-    /*
-     * Estimated initial size (needed for compound node size estimation)
-     */
     this.estimatedSize = Integer.MIN_VALUE;
-
-    /*
-     * Depth of this node in nesting hierarchy. Nodes in the root graph are of
-     * depth 1, nodes in the child graph of a node in the graph are of depth 2,
-     * etc.
-     */
     this.inclusionTreeDepth = Integer.MAX_VALUE;
-
-    // -----------------------------------------------------------------------------
-    // Section: Constructors and initialization
-    // -----------------------------------------------------------------------------
-    //in java: super(vNode);
     this.vGraphObject = vNode;
-    //in java: this.initialize();
     this.edges = [];
-//  this.clusters = [];
-    //---------------------------
     this.graphManager = gm;
 
     if (size != null && loc != null)
@@ -3336,42 +2100,16 @@
     LNode[prop] = LGraphObject[prop];
   }
 
-// -----------------------------------------------------------------------------
-// Section: Accessors
-// -----------------------------------------------------------------------------
-  /**
-   * This method returns the list of incident edges of this node.
-   */
   LNode.prototype.getEdges = function ()
   {
     return this.edges;
   };
 
-  /**
-   * This method returns the child graph of this node, if any. Only compound
-   * nodes will have child graphs.
-   */
   LNode.prototype.getChild = function ()
   {
     return this.child;
   };
 
-  /**
-   * This method sets the child graph of this node. Only compound nodes will
-   * have child graphs.
-   */
-  LNode.prototype.setChild = function (child)
-  {
-    if (child != null)
-      if (!(child == null || child.getGraphManager() == this.graphManager))
-        throw "Child has different graph mgr!";
-
-    this.child = child;
-  };
-
-  /**
-   * This method returns the owner graph of this node.
-   */
   LNode.prototype.getOwner = function ()
   {
     if (this.owner != null) {
@@ -3383,108 +2121,58 @@
     return this.owner;
   };
 
-  /**
-   * This method sets the owner of this node as input graph.
-   */
-  LNode.prototype.setOwner = function (owner)
-  {
-    this.owner = owner;
-  };
-
-  /**
-   * This method returns the width of this node.
-   */
   LNode.prototype.getWidth = function ()
   {
     return this.rect.width;
   };
 
-  /**
-   * This method sets the width of this node.
-   */
   LNode.prototype.setWidth = function (width)
   {
     this.rect.width = width;
   };
 
-  /**
-   * This method returns the height of this node.
-   */
   LNode.prototype.getHeight = function ()
   {
     return this.rect.height;
   };
 
-  /**
-   * This method sets the height of this node.
-   */
   LNode.prototype.setHeight = function (height)
   {
     this.rect.height = height;
   };
 
-  /**
-   * This method returns the x coordinate of the center of this node.
-   */
   LNode.prototype.getCenterX = function ()
   {
     return this.rect.x + this.rect.width / 2;
   };
 
-  /**
-   * This method returns the y coordinate of the center of this node.
-   */
   LNode.prototype.getCenterY = function ()
   {
     return this.rect.y + this.rect.height / 2;
   };
 
-  /**
-   * This method returns the center of this node.
-   */
   LNode.prototype.getCenter = function ()
   {
     return new PointD(this.rect.x + this.rect.width / 2,
             this.rect.y + this.rect.height / 2);
   };
 
-  /**
-   * This method returns the location (upper-left corner) of this node.
-   */
   LNode.prototype.getLocation = function ()
   {
     return new PointD(this.rect.x, this.rect.y);
   };
 
-  /**
-   * This method returns the geometry of this node.
-   */
   LNode.prototype.getRect = function ()
   {
     return this.rect;
   };
 
-  /**
-   * This method returns the diagonal length of this node.
-   */
   LNode.prototype.getDiagonal = function ()
   {
     return Math.sqrt(this.rect.width * this.rect.width +
             this.rect.height * this.rect.height);
   };
 
-  /**
-   * This method returns half the diagonal length of this node.
-   */
-  LNode.prototype.getHalfTheDiagonal = function ()
-  {
-    return Math.sqrt(this.rect.height * this.rect.height +
-            this.rect.width * this.rect.width) / 2;
-  };
-
-  /**
-   * This method sets the geometry of this node.
-   */
   LNode.prototype.setRect = function (upperLeft, dimension)
   {
     this.rect.x = upperLeft.x;
@@ -3493,39 +2181,24 @@
     this.rect.height = dimension.height;
   };
 
-  /**
-   * This method sets the center of this node.
-   */
   LNode.prototype.setCenter = function (cx, cy)
   {
     this.rect.x = cx - this.rect.width / 2;
     this.rect.y = cy - this.rect.height / 2;
   };
 
-  /**
-   * This method sets the location of this node.
-   */
   LNode.prototype.setLocation = function (x, y)
   {
     this.rect.x = x;
     this.rect.y = y;
   };
 
-  /**
-   * This method moves the geometry of this node by specified amounts.
-   */
   LNode.prototype.moveBy = function (dx, dy)
   {
     this.rect.x += dx;
     this.rect.y += dy;
   };
 
-// -----------------------------------------------------------------------------
-// Section: Remaining methods
-// -----------------------------------------------------------------------------
-  /**
-   * This method returns all nodes emanating from this node.
-   */
   LNode.prototype.getEdgeListToNode = function (to)
   {
     var edgeList = [];
@@ -3547,9 +2220,6 @@
     return edgeList;
   };
 
-  /**
-   *	This method returns all edges between this node and the given node.
-   */
   LNode.prototype.getEdgesBetween = function (other)
   {
     var edgeList = [];
@@ -3571,29 +2241,6 @@
     return edgeList;
   };
 
-  /**
-   * This method returns whether or not input node is a neighbor of this node.
-   */
-  LNode.prototype.isNeighbor = function (node)
-  {
-    var edge;
-
-    for (var obj in this.edges)
-    {
-      edge = obj;
-
-      if (edge.source == node || edge.target == node)
-      {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  /**
-   * This method returns a set of neighbors of this node.
-   */
   LNode.prototype.getNeighborsList = function ()
   {
     var neighbors = new HashSet();
@@ -3618,34 +2265,6 @@
     return neighbors;
   };
 
-  /**
-   * This method returns a set of successors (outgoing nodes) of this node.
-   */
-  LNode.prototype.getSuccessors = function ()
-  {
-    var neighbors = new HashSet();
-    var edge;
-
-    for (var obj in this.edges)
-    {
-      edge = obj;
-
-      if (!(edge.source.equals(this) || edge.target.equals(this)))
-        throw	"Incorrect incidency!";
-
-      if (edge.source.equals(this))//**************************************************
-      {
-        neighbors.add(edge.target);
-      }
-    }
-
-    return neighbors;
-  };
-
-  /**
-   * This method forms a list of nodes, composed of this node and its children
-   * (direct and indirect).
-   */
   LNode.prototype.withChildren = function ()
   {
     var withNeighborsList = [];
@@ -3667,10 +2286,6 @@
     return withNeighborsList;
   };
 
-  /**
-   * This method returns the estimated size of this node, taking into account
-   * node margins and whether this node is a compound one containing others.
-   */
   LNode.prototype.getEstimatedSize = function () {
     if (this.estimatedSize == Integer.MIN_VALUE) {
       throw "assert failed";
@@ -3678,11 +2293,6 @@
     return this.estimatedSize;
   };
 
-  /*
-   * This method calculates the estimated size of this node. If the node is
-   * a compound node, the operation is performed recursively. It also sets the
-   * initial sizes of compound nodes based on this estimate.
-   */
   LNode.prototype.calcEstimatedSize = function () {
     if (this.child == null)
     {
@@ -3698,10 +2308,6 @@
     }
   };
 
-  /**
-   * This method positions this node randomly in both x and y dimensions. We
-   * assume the center to be at (WORLD_CENTER_X, WORLD_CENTER_Y).
-   */
   LNode.prototype.scatter = function () {
     var randomCenterX;
     var randomCenterY;
@@ -3720,9 +2326,6 @@
     this.rect.y = randomCenterY
   };
 
-  /**
-   * This method updates the bounds of this compound node.
-   */
   LNode.prototype.updateBounds = function () {
     if (this.getChild() == null) {
       throw "assert failed";
@@ -3744,10 +2347,6 @@
     }
   };
 
-  /**
-   * This method returns the depth of this node in the inclusion tree (nesting
-   * hierarchy).
-   */
   LNode.prototype.getInclusionTreeDepth = function ()
   {
     if (this.inclusionTreeDepth == Integer.MAX_VALUE) {
@@ -3756,38 +2355,6 @@
     return this.inclusionTreeDepth;
   };
 
-  /**
-   * This method returns all parents (direct or indirect) of this node in the
-   * nesting hierarchy.
-   */
-  LNode.prototype.getAllParents = function () {
-    var parents = [];
-    var rootNode = this.owner.getGraphManager().getRoot().getParent();
-    var parent = this.owner.getParent();
-
-    while (true)
-    {
-      if (parent != rootNode)
-      {
-        parents.push(parent);
-      }
-      else
-      {
-        break;
-      }
-
-      parent = parent.getOwner().getParent();
-    }
-
-    parents.push(rootNode);
-
-    return parents;
-  };
-
-  /**
-   * This method transforms the layout coordinates of this node using input
-   * transform.
-   */
   LNode.prototype.transform = function (trans)
   {
     var left = this.rect.x;
@@ -3818,42 +2385,26 @@
     this.setLocation(vLeftTop.x, vLeftTop.y);
   };
 
-  /**
-   * This method returns the left of this node.
-   */
   LNode.prototype.getLeft = function ()
   {
     return this.rect.x;
   };
 
-  /**
-   * This method returns the right of this node.
-   */
   LNode.prototype.getRight = function ()
   {
     return this.rect.x + this.rect.width;
   };
 
-  /**
-   * This method returns the top of this node.
-   */
   LNode.prototype.getTop = function ()
   {
     return this.rect.y;
   };
 
-  /**
-   * This method returns the bottom of this node.
-   */
   LNode.prototype.getBottom = function ()
   {
     return this.rect.y + this.rect.height;
   };
 
-  /**
-   * This method returns the parent of clustered object.
-   * If it is a root object, then null should be returned.
-   */
   LNode.prototype.getParent = function ()
   {
     if (this.owner == null)
@@ -3864,57 +2415,21 @@
     return this.owner.getParent();
   };
 
-// -----------------------------------------------------------------------------
-// Section: Class variables
-// -----------------------------------------------------------------------------
-  /*
-   * Used for random initial positioning
-   */
-//  LNode.random = new RandomSeed(Layout.RANDOM_SEED);
-// -----------------------------------------------------------------------------
-// Section: Testing methods
-// -----------------------------------------------------------------------------
-  /**
-   * This method prints the topology of this node.
-   */
-  LNode.prototype.printTopology = function ()
-  {
-    console.log(this.rect.x + "\t" + this.rect.getY() + "\t" + this.rect.getWidth() + "\t" + this.rect.getHeight());
-  }
-
   function Layout(isRemoteUse) {
-    /**
-     * Layout Quality: 0:proof, 1:default, 2:draft
-     */
+    //Layout Quality: 0:proof, 1:default, 2:draft
     this.layoutQuality = LayoutConstants.DEFAULT_QUALITY;
-
-    /**
-     * Whether layout should create bendpoints as needed or not
-     */
+    //Whether layout should create bendpoints as needed or not
     this.createBendsAsNeeded =
             LayoutConstants.DEFAULT_CREATE_BENDS_AS_NEEDED;
-
-    /**
-     * Whether layout should be incremental or not
-     */
+    //Whether layout should be incremental or not
     this.incremental = LayoutConstants.DEFAULT_INCREMENTAL;
-
-    /**
-     * Whether we animate from before to after layout node positions
-     */
+    //Whether we animate from before to after layout node positions
     this.animationOnLayout =
             LayoutConstants.DEFAULT_ANIMATION_ON_LAYOUT;
-
-    /**
-     * Whether we animate the layout process or not
-     */
+    //Whether we animate the layout process or not
     this.animationDuringLayout = LayoutConstants.DEFAULT_ANIMATION_DURING_LAYOUT;
-
-    /**
-     * Number iterations that should be done between two successive animations
-     */
+    //Number iterations that should be done between two successive animations
     this.animationPeriod = LayoutConstants.DEFAULT_ANIMATION_PERIOD;
-
     /**
      * Whether or not leaf nodes (non-compound nodes) are of uniform sizes. When
      * they are, both spring and repulsion forces between two leaf nodes can be
@@ -3923,50 +2438,21 @@
      */
     this.uniformLeafNodeSizes =
             LayoutConstants.DEFAULT_UNIFORM_LEAF_NODE_SIZES;
-
-    /*
-     * Geometric abstraction of the compound graph
-     */
-    //this.graphManager = null;
-
-    /*
-     * Whether layout is finished or not
-     */
-    this.isLayoutFinished = null;
-
-    /*
-     * Whether this layout is a sub-layout of another one (e.g. CoSE called
-     * within CiSE for laying out the cluster graph)
-     */
-    this.isSubLayout = null;
-
     /**
      * This is used for creation of bendpoints by using dummy nodes and edges.
      * Maps an LEdge to its dummy bendpoint path.
      */
     this.edgeToDummyNodes = new HashMap();
-
-    /**
-     * Indicates whether the layout is called remotely or not.
-     */
-    this.isRemoteUse = null;
-
-    this.graphManager = new LGraphManager(this);//this.newGraphManager();
+    this.graphManager = new LGraphManager(this);
     this.isLayoutFinished = false;
     this.isSubLayout = false;
     this.isRemoteUse = false;
 
-
-    //assert (this.graphManager != null);
     if (isRemoteUse != null) {
       this.isRemoteUse = isRemoteUse;
     }
   }
 
-
-  /**
-   * Used for deterministic results on consecutive executions of layout.
-   */
   Layout.RANDOM_SEED = 1;
 
   Layout.prototype.getGraphManager = function () {
@@ -3985,52 +2471,30 @@
     return this.graphManager.getAllNodesToApplyGravitation();
   };
 
-  /*
-   * This method creates a new graph manager associated with this layout.
-   */
   Layout.prototype.newGraphManager = function () {
     var gm = new LGraphManager(this);
     this.graphManager = gm;
     return gm;
   };
 
-  /**
-   * This method creates a new graph associated with the input view graph.
-   */
   Layout.prototype.newGraph = function (vGraph)
   {
     return new LGraph(null, this.graphManager, vGraph);
   };
 
-  /**
-   * This method creates a new node associated with the input view node.
-   */
   Layout.prototype.newNode = function (vNode)
   {
     return new LNode(this.graphManager, vNode);
   };
 
-  /**
-   * This method creates a new edge associated with the input view edge.
-   */
   Layout.prototype.newEdge = function (vEdge)
   {
     return new LEdge(null, null, vEdge);
   };
 
-  /**
-   * This method coordinates the layout operation. It returns true upon
-   * success, false otherwise.
-   */
   Layout.prototype.runLayout = function ()
   {
-//    broadcast({log: "here"});
     this.isLayoutFinished = false;
-
-    if (!this.isSubLayout)
-    {
-      this.doPreLayout();
-    }
 
     this.initParameters();
     var isLayoutSuccessfull;
@@ -4073,13 +2537,6 @@
     this.isLayoutFinished = true;
 
     return isLayoutSuccessfull;
-  };
-
-  /**
-   * This method performs the operations required before layout.
-   */
-  Layout.prototype.doPreLayout = function ()
-  {
   };
 
   /**
@@ -4251,6 +2708,7 @@
   };
 
   Layout.prototype.positionNodesRandomly = function (graph) {
+
     if (graph == undefined) {
       //assert !this.incremental;
       this.positionNodesRandomly(this.getGraphManager().getRoot());
@@ -4525,24 +2983,6 @@
   };
 
   /**
-   * This method takes a list of lists, where each list contains l-nodes of a
-   * tree. Center of each tree is return as a list of.
-   */
-  Layout.findCenterOfEachTree = function (listofLists)
-  {
-    var centers = [];
-
-    for (var i = 0; i < listofLists.length; i++)
-    {
-      var list = listofLists[i];
-      var center = findCenterOfTree(list);
-      centers[i] = center;
-    }
-
-    return centers;
-  };
-
-  /**
    * This method finds and returns the center of the given nodes, assuming
    * that the given nodes form a tree in themselves.
    */
@@ -4788,34 +3228,6 @@
     this.totalDisplacement = 0.0;
     this.oldTotalDisplacement = 0.0;
     this.maxIterations = FDLayoutConstants.MAX_ITERATIONS;
-    this.totalIterations = null;
-
-    /**
-     * Number of layout iterations that has not been animated (rendered)
-     */
-    this.notAnimatedIterations = null;
-
-    /**
-     * Threshold for convergence (calculated according to graph to be laid out)
-     */
-    this.totalDisplacementThreshold = null;
-
-    /**
-     * Maximum node displacement in allowed in one iteration
-     */
-    this.maxNodeDisplacement = null;
-
-    /**
-     * Repulsion range & edge size of a grid
-     */
-    this.repulsionRange = null;
-
-    /**
-     * Screen is divided into grid of squares.
-     * At each iteration, each node is placed in its grid square(s)
-     * Grid is re-calculated after every tenth iteration.
-     */
-    this.grid = null;
   }
 
   FDLayout.prototype = Object.create(Layout.prototype);
@@ -4884,6 +3296,7 @@
   };
 
   FDLayout.prototype.initSpringEmbedder = function () {
+
     if (this.incremental)
     {
       this.coolingFactor = 0.8;
@@ -4924,7 +3337,6 @@
     var i, j;
     var nodeA, nodeB;
     var lNodes = this.getAllNodes();
-    var processedNodeSet;
 
     for (i = 0; i < lNodes.length; i++)
     {
@@ -4943,7 +3355,6 @@
         this.calcRepulsionForce(nodeA, nodeB);
       }
     }
-//    }
   };
 
   FDLayout.prototype.calcGravitationalForces = function () {
@@ -4999,8 +3410,8 @@
     springForce = this.springConstant * (length - idealLength);
 
     // Project force onto x and y axes
-    springForceX = springForce * (edge.getLengthX() / length);
-    springForceY = springForce * (edge.getLengthY() / length);
+    springForceX = springForce * (edge.lengthX / length);
+    springForceY = springForce * (edge.lengthY / length);
 
     // Apply forces on the end nodes
     sourceNode.springForceX += springForceX;
@@ -5022,61 +3433,57 @@
     var repulsionForceX;
     var repulsionForceY;
 
-    if (rectA.intersects(rectB))
-            // two nodes overlap
-            {
-              // calculate separation amount in x and y directions
-              IGeometry.calcSeparationAmount(rectA,
-                      rectB,
-                      overlapAmount,
-                      FDLayoutConstants.DEFAULT_EDGE_LENGTH / 2.0);
+    if (rectA.intersects(rectB))// two nodes overlap
+    {
+      // calculate separation amount in x and y directions
+      IGeometry.calcSeparationAmount(rectA,
+              rectB,
+              overlapAmount,
+              FDLayoutConstants.DEFAULT_EDGE_LENGTH / 2.0);
 
-              repulsionForceX = overlapAmount[0];
-              repulsionForceY = overlapAmount[1];
-            }
-    else
-            // no overlap
-            {
-              // calculate distance
+      repulsionForceX = overlapAmount[0];
+      repulsionForceY = overlapAmount[1];
+    }
+    else// no overlap
+    {
+      // calculate distance
 
-              if (this.uniformLeafNodeSizes &&
-                      nodeA.getChild() == null && nodeB.getChild() == null)
-                      // simply base repulsion on distance of node centers
-                      {
-                        distanceX = rectB.getCenterX() - rectA.getCenterX();
-                        distanceY = rectB.getCenterY() - rectA.getCenterY();
-                      }
-              else
-                      // use clipping points
-                      {
-                        IGeometry.getIntersection(rectA, rectB, clipPoints);
+      if (this.uniformLeafNodeSizes &&
+              nodeA.getChild() == null && nodeB.getChild() == null)// simply base repulsion on distance of node centers              
+      {
+        distanceX = rectB.getCenterX() - rectA.getCenterX();
+        distanceY = rectB.getCenterY() - rectA.getCenterY();
+      }
+      else// use clipping points              
+      {
+        IGeometry.getIntersection(rectA, rectB, clipPoints);
 
-                        distanceX = clipPoints[2] - clipPoints[0];
-                        distanceY = clipPoints[3] - clipPoints[1];
-                      }
+        distanceX = clipPoints[2] - clipPoints[0];
+        distanceY = clipPoints[3] - clipPoints[1];
+      }
 
-              // No repulsion range. FR grid variant should take care of this.
-              if (Math.abs(distanceX) < FDLayoutConstants.MIN_REPULSION_DIST)
-              {
-                distanceX = IMath.sign(distanceX) *
-                        FDLayoutConstants.MIN_REPULSION_DIST;
-              }
+      // No repulsion range. FR grid variant should take care of this.
+      if (Math.abs(distanceX) < FDLayoutConstants.MIN_REPULSION_DIST)
+      {
+        distanceX = IMath.sign(distanceX) *
+                FDLayoutConstants.MIN_REPULSION_DIST;
+      }
 
-              if (Math.abs(distanceY) < FDLayoutConstants.MIN_REPULSION_DIST)
-              {
-                distanceY = IMath.sign(distanceY) *
-                        FDLayoutConstants.MIN_REPULSION_DIST;
-              }
+      if (Math.abs(distanceY) < FDLayoutConstants.MIN_REPULSION_DIST)
+      {
+        distanceY = IMath.sign(distanceY) *
+                FDLayoutConstants.MIN_REPULSION_DIST;
+      }
 
-              distanceSquared = distanceX * distanceX + distanceY * distanceY;
-              distance = Math.sqrt(distanceSquared);
+      distanceSquared = distanceX * distanceX + distanceY * distanceY;
+      distance = Math.sqrt(distanceSquared);
 
-              repulsionForce = this.repulsionConstant / distanceSquared;
+      repulsionForce = this.repulsionConstant / distanceSquared;
 
-              // Project force onto x and y axes
-              repulsionForceX = repulsionForce * distanceX / distance;
-              repulsionForceY = repulsionForce * distanceY / distance;
-            }
+      // Project force onto x and y axes
+      repulsionForceX = repulsionForce * distanceX / distance;
+      repulsionForceY = repulsionForce * distanceY / distance;
+    }
 
     // Apply forces on the two nodes
     nodeA.repulsionForceX -= repulsionForceX;
@@ -5103,38 +3510,31 @@
     absDistanceX = Math.abs(distanceX);
     absDistanceY = Math.abs(distanceY);
 
-    // Apply gravitation only if the node is "roughly" outside the
-    // bounds of the initial estimate for the bounding rect of the owner
-    // graph. We relax (not as much for the compounds) the estimated
-    // size here since the initial estimates seem to be rather "tight".
+    if (node.getOwner() == this.graphManager.getRoot())// in the root graph           
+    {
+      Math.floor(80);
+      estimatedSize = Math.floor(ownerGraph.getEstimatedSize() *
+              this.gravityRangeFactor);
 
-    if (node.getOwner() == this.graphManager.getRoot())
-            // in the root graph
-            {
-              Math.floor(80);
-              estimatedSize = Math.floor(ownerGraph.getEstimatedSize() *
-                      this.gravityRangeFactor);
+      if (absDistanceX > estimatedSize || absDistanceY > estimatedSize)
+      {
+        node.gravitationForceX = -this.gravityConstant * distanceX;
+        node.gravitationForceY = -this.gravityConstant * distanceY;
+      }
+    }
+    else// inside a compound           
+    {
+      estimatedSize = Math.floor((ownerGraph.getEstimatedSize() *
+              this.compoundGravityRangeFactor));
 
-              if (absDistanceX > estimatedSize || absDistanceY > estimatedSize)
-              {
-                node.gravitationForceX = -this.gravityConstant * distanceX;
-                node.gravitationForceY = -this.gravityConstant * distanceY;
-              }
-            }
-    else
-            // inside a compound
-            {
-              estimatedSize = Math.floor((ownerGraph.getEstimatedSize() *
-                      this.compoundGravityRangeFactor));
-
-              if (absDistanceX > estimatedSize || absDistanceY > estimatedSize)
-              {
-                node.gravitationForceX = -this.gravityConstant * distanceX *
-                        this.compoundGravityConstant;
-                node.gravitationForceY = -this.gravityConstant * distanceY *
-                        this.compoundGravityConstant;
-              }
-            }
+      if (absDistanceX > estimatedSize || absDistanceY > estimatedSize)
+      {
+        node.gravitationForceX = -this.gravityConstant * distanceX *
+                this.compoundGravityConstant;
+        node.gravitationForceY = -this.gravityConstant * distanceY *
+                this.compoundGravityConstant;
+      }
+    }
   };
 
   FDLayout.prototype.isConverged = function () {
@@ -5166,109 +3566,6 @@
       {
         this.notAnimatedIterations++;
       }
-    }
-  };
-
-  FDLayout.prototype.calcGrid = function (g) {
-    var i, j;
-    var grid;
-
-    var sizeX = 0;
-    var sizeY = 0;
-
-    sizeX = Math.ceil((g.getRight() - g.getLeft()) / this.repulsionRange);
-    sizeY = Math.ceil((g.getBottom() - g.getTop()) / this.repulsionRange);
-
-    grid = new Array(sizeX);
-
-    for (var i = 0; i < sizeX; i++) {
-      grid[i] = new Array(sizeY);
-    }
-
-    for (i = 0; i < sizeX; i++)
-    {
-      for (j = 0; j < sizeY; j++)
-      {
-        grid[i][j] = [];
-      }
-    }
-    return grid;
-  };
-
-  FDLayout.prototype.addNodeToGrid = function (v, grid, left, top) {
-    var startX = 0;
-    var finishX = 0;
-    var startY = 0;
-    var finishY = 0;
-
-    startX = Math.floor((v.getRect().x - left) / this.repulsionRange);
-    finishX = Math.floor((v.getRect().width + v.getRect().x - left) / this.repulsionRange);
-    startY = Math.floor((v.getRect().y - top) / this.repulsionRange);
-    finishY = Math.floor((v.getRect().height + v.getRect().y - top) / this.repulsionRange);
-
-    for (var i = startX; i <= finishX; i++)
-    {
-      for (var j = startY; j <= finishY; j++)
-      {
-        grid[i][j].push(v);
-        v.setGridCoordinates(startX, finishX, startY, finishY);
-      }
-    }
-  };
-
-  FDLayout.prototype.calculateRepulsionForceOfANode = function (grid, nodeA, processedNodeSet) {
-    var i, j;
-    if (this.totalIterations % FDLayoutConstants.GRID_CALCULATION_CHECK_PERIOD == 1)
-    {
-      var surrounding = [];
-      var nodeB;
-
-      for (i = (nodeA.startX - 1); i < (nodeA.finishX + 2); i++)
-      {
-        for (j = (nodeA.startY - 1); j < (nodeA.finishY + 2); j++)
-        {
-          if (!((i < 0) || (j < 0) || (i >= grid.length) || (j >= grid[0].length)))
-          {
-            var temp = grid[i][j];
-            for (var i = 0; i < temp.length; i++)
-            {
-              nodeB = temp[i];
-
-              // If both nodes are not members of the same graph, 
-              // or both nodes are the same, skip.
-              if ((nodeA.getOwner() != nodeB.getOwner())
-                      || (nodeA == nodeB))
-              {
-                continue;
-              }
-
-              // check if the repulsion force between 
-              // nodeA and nodeB has already been calculated
-              if ($.inArray(nodeB, processedNodeSet) < 0 && $.inArray(nodeB, surrounding) < 0)
-              {
-                var distanceX = Math.abs(nodeA.getCenterX() - nodeB.getCenterX()) -
-                        ((nodeA.getWidth() / 2) + (nodeB.getWidth() / 2));
-                var distanceY = Math.abs(nodeA.getCenterY() - nodeB.getCenterY()) -
-                        ((nodeA.getHeight() / 2) + (nodeB.getHeight() / 2));
-
-                // if the distance between nodeA and nodeB 
-                // is less then calculation range
-                if ((distanceX <= this.repulsionRange) && (distanceY <= this.repulsionRange))
-                {
-                  //then add nodeB to surrounding of nodeA
-                  surrounding.add(nodeB);
-                }
-              }
-            }
-          }
-        }
-      }
-      nodeA.surrounding = surrounding;
-    }
-
-    for (i = 0; i < nodeA.surrounding.length; i++)
-    {
-      this.calcRepulsionForce(nodeA, nodeA.surrounding[i]);
     }
   };
 
@@ -5329,40 +3626,25 @@
   function FDLayoutNode(gm, loc, size, vNode) {
     // alternative constructor is handled inside LNode
     LNode.call(this, gm, loc, size, vNode);
-// -----------------------------------------------------------------------------
-// Section: Instance variables
-// -----------------------------------------------------------------------------
-    /*
-     * Spring, repulsion and gravitational forces acting on this node
-     */
+    //Spring, repulsion and gravitational forces acting on this node
     this.springForceX = 0;
     this.springForceY = 0;
     this.repulsionForceX = 0;
     this.repulsionForceY = 0;
     this.gravitationForceX = 0;
     this.gravitationForceY = 0;
-
-    /*
-     * Amount by which this node is to be moved in this iteration
-     */
+    //Amount by which this node is to be moved in this iteration
     this.displacementX = 0;
     this.displacementY = 0;
 
-    /**
-     * Start and finish grid coordinates that this node is fallen into
-     */
+    //Start and finish grid coordinates that this node is fallen into
     this.startX = 0;
     this.finishX = 0;
     this.startY = 0;
     this.finishY = 0;
 
-    /**
-     * Geometric neighbors of this node 
-     */
+    //Geometric neighbors of this node 
     this.surrounding = [];
-
-//    this.move = FDLayoutNode.prototype.move;
-//    this.setGridCoordinates = FDLayoutNode.prototype.setGridCoordinates;
   }
 
   FDLayoutNode.prototype = Object.create(LNode.prototype);
@@ -5371,12 +3653,6 @@
     FDLayoutNode[prop] = LNode[prop];
   }
 
-// -----------------------------------------------------------------------------
-// Section: FR-Grid Variant Repulsion Force Calculation
-// -----------------------------------------------------------------------------
-  /**
-   * This method sets start and finish grid coordinates
-   */
   FDLayoutNode.prototype.setGridCoordinates = function (_startX, _finishX, _startY, _finishY)
   {
     this.startX = _startX;
@@ -5386,40 +3662,8 @@
 
   };
 
-// -----------------------------------------------------------------------------
-// Section: Remaining methods
-// -----------------------------------------------------------------------------
-  /*
-   * This method recalculates the displacement related attributes of this
-   * object. These attributes are calculated at each layout iteration once,
-   * for increasing the speed of the layout.
-   */
-  FDLayoutNode.prototype.move = function ()
-  {
-    throw "Abstract method is not overridden: FDLayoutNode->move()";
-  };
-
   function CoSENode(gm, loc, size, vNode) {
-
-    // alternative constructor is handled inside LNode
     FDLayoutNode.call(this, gm, loc, size, vNode);
-// -----------------------------------------------------------------------------
-// Section: Instance variables
-// -----------------------------------------------------------------------------
-    /**
-     * This node is constructed by contracting pred1 and pred2 from Mi-1
-     * next is constructed by contracting this node and another node from Mi
-     */
-    this.pred1;
-    this.pred2;
-    this.next;
-
-    /**
-     * Processed flag for CoSENode is needed during the coarsening process
-     * a node can be the next node of two different nodes. 
-     * so it can already be processed during the coarsening process
-     */
-    this.processed;
   }
 
 
@@ -5428,34 +3672,14 @@
     CoSENode[prop] = FDLayoutNode[prop];
   }
 
-// -----------------------------------------------------------------------------
-// Section: Remaining methods
-// -----------------------------------------------------------------------------
-  /*
-   * This method recalculates the displacement related attributes of this
-   * object. These attributes are calculated at each layout iteration once,
-   * for increasing the speed of the layout.
-   */
   CoSENode.prototype.move = function ()
   {
-//  throw "buraya bak bakalim extend ettigin class'dan graphManager gelmiş mi"
     var layout = this.graphManager.getLayout();
     this.displacementX = layout.coolingFactor *
             (this.springForceX + this.repulsionForceX + this.gravitationForceX);
     this.displacementY = layout.coolingFactor *
             (this.springForceY + this.repulsionForceY + this.gravitationForceY);
 
-//  if (Math.abs(this.displacementX) > layout.maxNodeDisplacement)
-//  {
-//    this.displacementX = layout.maxNodeDisplacement *
-//            IMath.sign(this.displacementX);
-//  }
-//
-//  if (Math.abs(this.displacementY) > layout.maxNodeDisplacement)
-//  {
-//    this.displacementY = layout.maxNodeDisplacement *
-//            IMath.sign(this.displacementY);
-//  }
 
     if (Math.abs(this.displacementX) > layout.coolingFactor * layout.maxNodeDisplacement)
     {
@@ -5499,10 +3723,6 @@
     this.displacementY = 0;
   };
 
-  /*
-   * This method applies the transformation of a compound node (denoted as
-   * root) to all the nodes in its children graph
-   */
   CoSENode.prototype.propogateDisplacementToChildren = function (dX, dY)
   {
     var nodes = this.getChild().getNodes();
@@ -5523,9 +3743,6 @@
     }
   };
 
-// -----------------------------------------------------------------------------
-// Section: Getters and setters
-// -----------------------------------------------------------------------------
   CoSENode.prototype.setPred1 = function (pred1)
   {
     this.pred1 = pred1;
@@ -5534,11 +3751,6 @@
   CoSENode.prototype.getPred1 = function ()
   {
     return pred1;
-  };
-
-  CoSENode.prototype.setPred2 = function (pred2)
-  {
-    this.pred2 = pred2;
   };
 
   CoSENode.prototype.getPred2 = function ()
@@ -5568,9 +3780,6 @@
 
   function CoSELayout() {
     FDLayout.call(this);
-    this.level = null;
-    this.noOfLevels = null;
-    this.MList = null;
   }
 
   CoSELayout.prototype = Object.create(FDLayout.prototype);
@@ -5637,8 +3846,6 @@
     if (createBendsAsNeeded)
     {
       this.createBendpoints();
-
-      // reset edge list, since the topology has changed
       this.graphManager.resetAllEdges();
     }
 
@@ -5664,7 +3871,6 @@
       }
       // The graph associated with this layout is not flat or a forest
       else
-
       {
         this.positionNodesRandomly();
       }
@@ -5680,8 +3886,6 @@
   };
 
   CoSELayout.prototype.runSpringEmbedder = function () {
-    var functions = {};
-
     do
     {
       this.totalIterations++;
@@ -5696,7 +3900,6 @@
         this.coolingFactor = this.initialCoolingFactor *
                 ((this.maxIterations - this.totalIterations) / this.maxIterations);
 
-//				this.updateAnnealingProbability();
       }
       this.totalDisplacement = 0;
       this.graphManager.updateBounds();
@@ -5705,22 +3908,22 @@
       this.calcGravitationalForces();
       this.moveNodes();
       this.animate();
-      if (this.totalIterations % 250 == 0) {
-        var allNodes = this.graphManager.getAllNodes();
-        var pData = {};
-        for (var i = 0; i < allNodes.length; i++) {
-          var rect = allNodes[i].rect;
-          var id = allNodes[i].id;
-          pData[id] = {
-            id: id,
-            x: rect.x,
-            y: rect.y,
-            w: rect.width,
-            h: rect.height
-          };
-        }
-        broadcast({pData: pData});
-      }
+//      if (this.totalIterations % 50 == 0) {
+//        var allNodes = this.graphManager.getAllNodes();
+//        var pData = {};
+//        for (var i = 0; i < allNodes.length; i++) {
+//          var rect = allNodes[i].rect;
+//          var id = allNodes[i].id;
+//          pData[id] = {
+//            id: id,
+//            x: rect.x,
+//            y: rect.y,
+//            w: rect.width,
+//            h: rect.height
+//          };
+//        }
+//        broadcast({pData: pData});
+//      }
     }
     while (this.totalIterations < this.maxIterations);
 
@@ -5899,7 +4102,6 @@
 
     // Traverse all neighbors of this node and recursively call this
     // function.
-
     var neighborEdges = [];
     var childCount = neighborEdges.length;
 
@@ -5959,7 +4161,7 @@
               (startAngle + branchCount * stepAngle) % 360;
       var childEndAngle = (childStartAngle + stepAngle) % 360;
 
-      thiss.branchRadialLayout(currentNeighbor,
+      this.branchRadialLayout(currentNeighbor,
               node,
               childStartAngle, childEndAngle,
               distance + radialSeparation, radialSeparation);
@@ -5985,274 +4187,24 @@
     return maxDiagonal;
   };
 
-  CoSELayout.prototype.uncoarsen = function () {
-    var allNodes = this.graphManager.getAllNodes();
-    for (var i = 0; i < allNodes.length; i++)
-    {
-      var v = allNodes[i];
-      // set positions of v.pred1 and v.pred2
-      v.getPred1().setLocation(v.getLeft(), v.getTop());
-
-      if (v.getPred2() != null)
-      {
-        v.getPred2().setLocation(v.getLeft() + this.idealEdgeLength,
-                v.getTop() + this.idealEdgeLength);
-      }
-    }
-  }
-  ;
   CoSELayout.prototype.calcRepulsionRange = function () {
     // formula is 2 x (level + 1) x idealEdgeLength
     return (2 * (this.level + 1) * this.idealEdgeLength);
   };
 
-  /**
-   * @brief : Logs a debug message in JS console, if DEBUG is ON
-   */
-  var logDebug = function (text) {
-    if (DEBUG) {
-      console.debug(text);
-    }
-  };
-
-  /* 
-   * To change this license header, choose License Headers in Project Properties.
-   * To change this template file, choose Tools | Templates
-   * and open the template in the editor.
-   */
-
   function CoSEGraphManager(layout) {
     LGraphManager.call(this, layout);
   }
 
-//Extends LGraphManager
   CoSEGraphManager.prototype = Object.create(LGraphManager.prototype);
   for (var prop in LGraphManager) {
     CoSEGraphManager[prop] = LGraphManager[prop];
-  }
-
-  /**
-   * This method returns a list of CoSEGraphManager. 
-   * Returned list holds graphs finer to coarser (M0 to Mk)
-   * Additionally, this method is only called by M0.
-   */
-  CoSEGraphManager.prototype.coarsenGraph = function ()
-  {
-    // MList holds graph managers from M0 to Mk
-    var MList = [];
-    var prevNodeCount;
-    var currNodeCount;
-
-    // "this" graph manager holds the finest (input) graph
-    MList.push(this);
-
-    // coarsening graph G holds only the leaf nodes and the edges between them 
-    // which are considered for coarsening process
-    var G = new CoarseningGraph(this.getLayout());
-
-    // construct G0
-    convertToCoarseningGraph(this.getRoot(), G);
-    currNodeCount = G.getNodes().length;
-
-    var lastM, newM;
-    // if two graphs Gi and Gi+1 have the same order, 
-    // then Gi = Gi+1 is the coarsest graph (Gk), so stop coarsening process
-    do {
-      prevNodeCount = currNodeCount;
-
-      // coarsen Gi
-      G.coarsen();
-
-      // get current coarsest graph lastM = Mi and construct newM = Mi+1
-      lastM = MList[MList.length - 1];
-      newM = coarsen(lastM);
-
-      MList.push(newM);
-      currNodeCount = G.getNodes().length;
-
-    } while ((prevNodeCount != currNodeCount) && (currNodeCount > 1));
-
-    // change currently being used graph manager
-    this.getLayout().setGraphManager(this);
-
-    MList.splice(MList.length - 1, 1);
-    return MList;
-  }
-
-  /**
-   * This method converts given CoSEGraph to CoarseningGraph G0
-   * G0 consists of leaf nodes of CoSEGraph and edges between them
-   */
-  CoSEGraphManager.prototype.convertToCoarseningGraph = function (coseG, G)
-  {
-    // we need a mapping between nodes in M0 and G0, for constructing the edges of G0
-    var map = new HashMap();
-
-    // construct nodes of G0
-    var nodes = coseG.getNodes();
-    var s = nodes.length;
-    for (var i = 0; i < s; i++)
-    {
-      var v = nodes[i];
-      // if current node is compound, 
-      // then make a recursive call with child graph of current compound node 
-      if (v.getChild() != null)
-      {
-        convertToCoarseningGraph(v.getChild(), G);
-      }
-      // otherwise current node is a leaf, and should be in the G0
-      else
-      {
-        // v is a leaf node in CoSE graph, and is referenced by u in G0
-        var u = new CoarseningNode();
-        u.setReference(v);
-
-        // construct a mapping between v (from CoSE graph) and u (from coarsening graph)
-        map.put(v, u);
-
-        G.add(u);
-      }
-    }
-
-    // construct edges of G0
-    var edges = coseG.getEdges();
-    s = edges.length;
-    for (var i = 0; i < s; i++)
-    {
-      var e = edges[i];
-      // if neither source nor target of e is a compound node
-      // then, e is an edge between two leaf nodes
-      if ((e.getSource().getChild() == null) && (e.getTarget().getChild() == null))
-      {
-        G.add(new CoSEEdge(), map.get(e.getSource()), map.get(e.getTarget()));
-      }
-    }
-  }
-
-  /**
-   * This method gets Mi (lastM) and coarsens to Mi+1
-   * Mi+1 is returned.
-   */
-  CoSEGraphManager.prototype.coarsen = function (lastM)
-  {
-    // create Mi+1 and root graph of it
-    var newM = new CoSEGraphManager(lastM.getLayout());
-
-    // change currently being used graph manager
-    newM.getLayout().setGraphManager(newM);
-    newM.addRoot();
-
-    newM.getRoot().vGraphObject = lastM.getRoot().vGraphObject;
-
-    // construct nodes of the coarser graph Mi+1
-    this.coarsenNodes(lastM.getRoot(), newM.getRoot());
-
-    // change currently being used graph manager
-    lastM.getLayout().setGraphManager(lastM);
-
-    // add edges to the coarser graph Mi+1
-    this.addEdges(lastM, newM);
-
-    return newM;
-  }
-
-  /**
-   * This method coarsens nodes of Mi and creates nodes of the coarser graph Mi+1
-   * g: Mi, coarserG: Mi+1
-   */
-  CoSEGraphManager.prototype.coarsenNodes = function (g, coarserG)
-  {
-    var nodes = g.getNodes();
-    var s = nodes.length;
-    for (var i = 0; i < s; i++)
-    {
-      var v = nodes[i];
-      // if v is compound
-      // then, create the compound node v.next with an empty child graph
-      // and, make a recursive call with v.child (Mi) and v.next.child (Mi+1)
-      if (v.getChild() != null)
-      {
-        v.setNext(coarserG.getGraphManager().getLayout().newNode(null));
-        coarserG.getGraphManager().add(coarserG.getGraphManager().getLayout().newGraph(null),
-                v.getNext());
-        v.getNext().setPred1(v);
-        coarserG.add(v.getNext());
-
-        //v.getNext().getChild().vGraphObject = v.getChild().vGraphObject;
-
-        coarsenNodes(v.getChild(), v.getNext().getChild());
-      }
-      else
-      {
-        // v.next can be referenced by two nodes, so first check if it is processed before
-        if (!v.getNext().isProcessed())
-        {
-          coarserG.add(v.getNext());
-          v.getNext().setProcessed(true);
-        }
-      }
-
-      //v.getNext().vGraphObject = v.vGraphObject;
-
-      // set location
-      v.getNext().setLocation(v.getLocation().x, v.getLocation().y);
-      v.getNext().setHeight(v.getHeight());
-      v.getNext().setWidth(v.getWidth());
-    }
-  }
-
-  /**
-   * This method adds edges to the coarser graph.
-   * It should be called after coarsenNodes method is executed
-   * lastM: Mi, newM: Mi+1
-   */
-  CoSEGraphManager.prototype.addEdges = function (lastM, newM)
-  {
-    var allEdges = lastM.getAllEdges();
-    var s = allEdges().length;
-    for (var i = 0; i < s; i++)
-    {
-      var e = allEdges[i];
-      // if e is an inter-graph edge or source or target of e is compound 
-      // then, e has not contracted during coarsening process. Add e to the coarser graph.			
-      if ((e.isInterGraph()) ||
-              (e.getSource().getChild() != null) ||
-              (e.getTarget().getChild() != null))
-      {
-        // check if e is not added before
-        if ((e.getSource()).getNext().getNeighborsList().
-                indexof((e.getTarget()).getNext()) == -1)
-        {
-          newM.add(newM.getLayout().newEdge(null),
-                  (e.getSource()).getNext(),
-                  (e.getTarget()).getNext());
-        }
-      }
-
-      // otherwise, if e is not contracted during coarsening process
-      // then, add it to the  coarser graph
-      else
-      {
-        if ((e.getSource()).getNext() != (e.getTarget()).getNext())
-        {
-          // check if e is not added before
-          if ((e.getSource()).getNext().getNeighborsList().
-                  indexof((e.getTarget()).getNext()) == -1)
-          {
-            newM.add(newM.getLayout().newEdge(null),
-                    (e.getSource()).getNext(),
-                    (e.getTarget()).getNext());
-          }
-        }
-      }
-    }
   }
 
   function CoSEGraph(parent, graphMgr, vGraph) {
     LGraph.call(this, parent, graphMgr, vGraph);
   }
 
-//extends LGraph
   CoSEGraph.prototype = Object.create(LGraph.prototype);
   for (var prop in LGraph) {
     CoSEGraph[prop] = LGraph[prop];
@@ -6278,16 +4230,7 @@
   CoSEConstants.DEFAULT_USE_MULTI_LEVEL_SCALING = false;
   CoSEConstants.DEFAULT_RADIAL_SEPARATION = FDLayoutConstants.DEFAULT_EDGE_LENGTH;
   CoSEConstants.DEFAULT_COMPONENT_SEPERATION = 60;
-
-
-
-
-
-
-
-  'use strict';
-  var DEBUG;
-
+  
   _CoSELayout.allChildren = [];
   _CoSELayout.idToLNode = {};
   _CoSELayout.toBeTiled = {};
@@ -6346,11 +4289,7 @@
     _CoSELayout.idToLNode = {};
     _CoSELayout.toBeTiled = {};
     layout = new CoSELayout();
-    //var options = this.options;
-//    var layout = this;
-
-    // cy is automatically populated for us in the constructor
-    this.cy = this.options.cy; // jshint ignore:line;
+    this.cy = this.options.cy; 
     var after = this;
 
     this.cy.trigger('layoutstart');
@@ -6358,8 +4297,10 @@
     var gm = layout.newGraphManager();
     this.gm = gm;
 
-    var nodes = this.options.eles.nodes();
-    var edges = this.options.eles.edges();
+    this.cy.nodes();
+    var nodes = this.cy.nodes();
+    ;
+    var edges = this.cy.edges();
 
     this.root = gm.addRoot();
     this.orphans = [];
@@ -6383,10 +4324,8 @@
     else {
       // Find zero degree nodes and create a complex for each level
       var memberGroups = this.groupZeroDegreeMembers();
-
       // Tile and clear children of each complex
       var tiledMemberPack = this.clearComplexes(this.options);
-
       // Separately tile and clear zero degree nodes for each level
       var tiledZeroDegreeNodes = this.clearZeroDegreeMembers(memberGroups);
     }
@@ -6412,7 +4351,6 @@
     t1.require(Integer);
     t1.require(Point);
     t1.require(PointD);
-    t1.require(QuickSort);
     t1.require(RandomSeed);
     t1.require(RectangleD);
     t1.require(Transform);
@@ -6435,11 +4373,9 @@
     t1.require(CoSEGraphManager);
     t1.require(CoSELayout);
     t1.require(CoSENode);
-//    t1.require(_CoSELayout);
-    var finished = false;
 
-    var nodes = this.options.eles.nodes();
-    var edges = this.options.eles.edges();
+    var nodes = this.cy.nodes();
+    var edges = this.cy.edges();
 
     // First I need to create the data structure to pass to the worker
     var pData = {
@@ -6455,6 +4391,16 @@
               var posX = node.position('x');
               var posY = node.position('y');
               var h = node.height();
+
+              var temp = node.parent()[0];
+
+              while (temp != null) {
+                if (_CoSELayout.toBeTiled[temp.id()]) {
+                  return;
+                }
+                temp = temp.parent()[0];
+              }
+
               pData[ 'nodes' ].push({
                 id: nodeId,
                 pid: parentId,
@@ -6479,7 +4425,7 @@
 
 
     var ready = false;
-    
+
     t1.pass(pData).run(function (pData) {
       var log = function (msg) {
         broadcast({log: msg});
@@ -6491,8 +4437,6 @@
       //to the main thread with the result map
       var layout_t = new CoSELayout();
       var gm_t = layout_t.newGraphManager();
-
-//      var root_t = gm_t.addRoot();
       var ngraph = gm_t.layout.newGraph();
       var nnode = gm_t.layout.newNode(null);
       var root = gm_t.add(ngraph, nnode);
@@ -6508,8 +4452,6 @@
       //A map of node id to corresponding node position and sizes
       //it is to be returned at the end of the thread function
       var result = {};
-
-//      log("here 6");
 
       //this function is similar to processChildrenList function in the main thread
       //it is to process the nodes in correct order recursively
@@ -6575,9 +4517,6 @@
         var sourceNode = idToLNode_t[edge.source];
         var targetNode = idToLNode_t[edge.target];
         var e1 = gm_t.add(layout_t.newEdge(), sourceNode, targetNode);
-
-//        if (sourceNode.owner.getNodes().indexOf(sourceNode) > -1 && targetNode.owner.getNodes().indexOf(targetNode) > -1)
-//          var e1 = gm.add(layout.newEdge(), sourceNode, targetNode);
       }
 
       //run the layout crated in this thread
@@ -6595,9 +4534,20 @@
           h: rect.height
         };
       }
+      var seeds = {};
+      seeds.rsSeed = RandomSeed.seed;
+      seeds.rsX = RandomSeed.x;
+      var pass = {
+        result: result,
+        seeds: seeds
+      }
       //return the result map to pass it to the then function as parameter
-      return result;//.runLayout();
-    }).then(function (result) {
+      return pass;
+    }).then(function (pass) {
+      var result = pass.result;
+      var seeds = pass.seeds;
+      RandomSeed.seed = seeds.rsSeed;
+      RandomSeed.x = seeds.rsX;
       //refresh the lnode positions and sizes by using result map
       for (var id in result) {
         var lNode = _CoSELayout.idToLNode[id];
@@ -6608,23 +4558,13 @@
         lNode.rect.height = node.h;
       }
       if (after.options.tile) {
-
         // Repopulate members
         after.repopulateZeroDegreeMembers(tiledZeroDegreeNodes);
-
         after.repopulateComplexes(tiledMemberPack);
-
-        after.options.eles.nodes().updateCompoundBounds();
+        after.cy.nodes().updateCompoundBounds();
       }
 
-
-
-      //add nodes to the graph manager in correct order
-//    this.processChildrenList(root, orphans);
-
-
-
-      after.options.eles.nodes().positions(function (i, ele) {
+      after.cy.nodes().positions(function (i, ele) {
         var theId = ele.data('id');
         var lNode = _CoSELayout.idToLNode[theId];
         console.log(theId + "\t" + lNode.getRect().getX() + "\t" + lNode.getRect().getY());
@@ -6638,10 +4578,8 @@
       if (after.options.fit)
         after.options.cy.fit(after.options.padding);
 
-      console.log(FDLayoutConstants.DEFAULT_EDGE_LENGTH);
-
       //trigger layoutready when each node has had its position set at least once
-      if(!ready){
+      if (!ready) {
         after.cy.one('layoutready', after.options.ready);
         after.cy.trigger('layoutready');
       }
@@ -6651,7 +4589,7 @@
       after.cy.trigger('layoutstop');
       t1.stop();
     });
-    
+
     t1.on('message', function (e) {
       var logMsg = e.message.log;
       if (logMsg != null) {
@@ -6662,25 +4600,26 @@
       if (pData != null) {
         console.log("pdata received");
 
-        after.options.eles.nodes().positions(function (i, ele) {
+        after.cy.nodes().positions(function (i, ele) {
           var theId = ele.data('id');
           var pNode = pData[theId];
-//          console.log(theId + "\t" + lNode.getRect().getX() + "\t" + lNode.getRect().getY());
-
+          if (pNode == null) {
+            return{
+              x: 0,
+              y: 0
+            }
+          }
           return {
             x: pNode.x,
             y: pNode.y
           };
         });
 
-        if(!ready){
+        if (!ready) {
           ready = true;
           after.one('layoutready', after.options.ready);
-          after.trigger({ type: 'layoutready', layout: after });
+          after.trigger({type: 'layoutready', layout: after});
         }
-        
-//        after.cy.one('layoutready', after.options.ready);
-//        after.cy.trigger('layoutready');
         return;
       }
     });
@@ -6726,11 +4665,6 @@
     return true;
   }
 
-  /**
-   * This method finds each zero degree node in the graph that are not owned by a complex. 
-   * If the number of zero degree nodes at any level is less than 2, no need to tile. 
-   * Otherwise, create a dummy complex for each group. 
-   */
   _CoSELayout.prototype.groupZeroDegreeMembers = function () {
     // array of [parent_id x oneDegreeNode_id] 
     var tempMemberGroups = [];
@@ -6778,10 +4712,6 @@
     return memberGroups;
   };
 
-  /**
-   *  This method finds all the roots in the graph and performs depth first search
-   *  to find all complexes.
-   */
   _CoSELayout.prototype.performDFSOnComplexes = function (options) {
     var complexOrder = [];
 
@@ -6802,10 +4732,6 @@
     return complexOrder;
   };
 
-  /**
-   * Removes children of each complex in the given list. Return a map of 
-   * complexes and their children.
-   */
   _CoSELayout.prototype.clearComplexes = function (options) {
     var childGraphMap = [];
 
@@ -6821,9 +4747,6 @@
       childGraphMap[complexOrder[i].id()] = complexOrder[i].children();
 
       // Remove children of complexes 
-//      lComplexNode.child.nodes = []; 
-//      this.gm.remove(lComplexNode.child);
-
       lComplexNode.child = null;
     }
 
@@ -6833,10 +4756,6 @@
     return tiledMemberPack;
   };
 
-  /**
-   * This method tiles each given member group separately. After each group is tiled,
-   * the members are removed from the graph.
-   */
   _CoSELayout.prototype.clearZeroDegreeMembers = function (memberGroups) {
     var tiledZeroDegreePack = [];
 
@@ -6852,31 +4771,20 @@
     return tiledZeroDegreePack;
   };
 
-  /**
-   *  Make the child graph of each complex visible and adjust the orientations
-   */
   _CoSELayout.prototype.repopulateComplexes = function (tiledMemberPack) {
     for (var i in tiledMemberPack) {
       var lComplexNode = _CoSELayout.idToLNode[i];
 
-//      this.adjustLocations(tiledMemberPack[i], lComplexNode.rect.x - lComplexNode.rect.width / 2, 
-//        lComplexNode.rect.y - lComplexNode.rect.height / 2 );
       this.adjustLocations(tiledMemberPack[i], lComplexNode.rect.x, lComplexNode.rect.y);
     }
   };
 
-  /**
-   * This method restores the deleted zero degree members and when the repopulation 
-   * is completed, associated dummy complex is removed from the graph.
-   */
   _CoSELayout.prototype.repopulateZeroDegreeMembers = function (tiledPack) {
     for (var i in tiledPack) {
       var complex = this.cy.getElementById(i);
       var complexNode = _CoSELayout.idToLNode[i];
 
       // Adjust the positions of nodes wrt its complex
-//        this.adjustLocations(tiledPack[i], complexNode.rect.x - complexNode.rect.width / 2, 
-//          complexNode.rect.y - complexNode.rect.height / 2 );
       this.adjustLocations(tiledPack[i], complexNode.rect.x, complexNode.rect.y);
 
       // Remove the dummy complex
@@ -6921,10 +4829,6 @@
     }
   };
 
-  /**
-   * Tile the children nodes of each complex and set the estimated width and height values
-   * for future layout operations
-   */
   _CoSELayout.prototype.tileComplexMembers = function (childGraphMap) {
     var tiledMemberPack = [];
 
@@ -6941,9 +4845,6 @@
     return tiledMemberPack;
   };
 
-  /**
-   *  This method places each node in the given list.
-   */
   _CoSELayout.prototype.tileNodes = function (nodes) {
     var organization = {
       rows: [],
@@ -6968,9 +4869,6 @@
 
       this.gm.resetAllNodes();
       this.gm.getAllNodes();
-
-//      this.gm.resetAllEdges();
-//      this.gm.getAllEdges();
 
       layoutNodes.push(lNode);
     }
@@ -7004,11 +4902,6 @@
     return organization;
   };
 
-  /**
-   * This method performs tiling. If a new row is needed, it creates the row
-   * and places the new node there. Otherwise, it places the node to the end
-   * of the specified row.
-   */
   _CoSELayout.prototype.insertNodeToRow = function (organization, node, rowIndex) {
     var minComplexSize = organization.complexMargin * 2;
 
@@ -7052,9 +4945,7 @@
     organization.rows[rowIndex].push(node);
   };
 
-  /**
-   * Scans the rows of an organization and returns the one with the min width
-   */
+  //Scans the rows of an organization and returns the one with the min width
   _CoSELayout.prototype.getShortestRowIndex = function (organization) {
     var r = -1;
     var min = Number.MAX_VALUE;
@@ -7068,9 +4959,7 @@
     return r;
   };
 
-  /**
-   * Scans the rows of an organization and returns the one with the max width
-   */
+  //Scans the rows of an organization and returns the one with the max width
   _CoSELayout.prototype.getLongestRowIndex = function (organization) {
     var r = -1;
     var max = Number.MIN_VALUE;
@@ -7136,10 +5025,9 @@
     return add_to_row_ratio < add_new_row_ratio;
   };
 
-  /**
-   * If moving the last node from the longest row and adding it to the last
-   * row makes the bounding box smaller, do it.
-   */
+
+  //If moving the last node from the longest row and adding it to the last
+  //row makes the bounding box smaller, do it.
   _CoSELayout.prototype.shiftToLastRow = function (organization) {
     var longest = this.getLongestRowIndex(organization);
     var last = organization.rowWidth.length - 1;
@@ -7228,9 +5116,6 @@
     }
   };
 
-
-
   // register the layout
   $$('layout', 'cose2', _CoSELayout);
-
 })(cytoscape);
